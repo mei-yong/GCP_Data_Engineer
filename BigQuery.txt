@@ -1,0 +1,125 @@
+
+BigQuery
+
+Querying Data & Schema Design
+
+How a Query Works
+1) Data is stored in distributed storage and called by 'workers' called slots
+2) Stage 1: The slots look for matches based on the WHERE clause and then return results to 1 big slots
+3) Stage 2: Then BQ gets the results from the 1 slot (this stage will have the longest wait time since the other smaller slots have to find matches first)
+You can see how many slots by looking at the Output of the Stage in the query execution plan - in GCP BQ, it's under the view 'Execution Details' tab.
+Slots are 'fairly divided' amongst jobs by BQ. If you have a high priority job, you can reserve x number of slots for it - hierarchical reservation.
+Guide: 2000 BQ slots for 50 medium complexity queries simultaneously.
+If the reservation is too small, the query will still run until done just one after another BUT BE WARNED queries get timed out after 6 hours - symptom, see if the query gets scheduled in less than a second and if it's more, then there's a problem.
+
+
+ANSI SQL queries - ACID compliant
+Failed queries are free - e.g. syntax error
+Can partition - on a datetype or int type
+Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 3) a INT column (specify min 0, max 100, buckets/intervals)- if you want to partition on a STR column, could transform the string and mod to 1000 before treating it as a INT column. When quering, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
+Can cluster - but must be partitioned first
+If you know that you'll always want to query your table based on one of the columns (if >50% of queries use a particular where clause), you should cluster the table based on that column - e.g. if you always want to query based on a particular user, should cluster on userID. Can also cluster based on multiple columns just by doing column1, column2 - like indexing. MUST already be partitioned by DATE or TIMESTAMP column to perform clustering.
+Note: partitioning and clustering have to be done at table creation - create a new table and copy the data if you've already created the table
+For tables that take streaming/live data, the latest day goes into a new partition but that new data is not clustered - the older partitions are clustered and are sorted. BigQuery then adds the new partition data to the other clusters on a schedule. If you want to force a recluster, use DML in the necessary partition. Reclustering is a system event.
+Can wildcard table query - use backticks, asterisk, and the _TABLE_SUFFIX function (`gsod-public.gsod_dataset.gsod_table*` WHERE _TABLE_SUFFIX IN RANGE ('20190101', '20191231'))
+For big tables (>10GB) create nested and repeated fields instead of normalising - unless you plan to perform UPDATE or DELETE on it often - FROM table, UNNEST(columnname)
+Use temp tables instead of WITH clauses where possible since it doesn't improve cost or performance
+APPROX_COUNT_DISTINCT() has 1% error margin but is much faster than COUNT_DISTINCT()
+Use LIMIT if you want to ORDER BY a whole table
+Don't use DML (single row updates) because BQ works on OLAP
+If pipeline needs filters, do all the filters first so you work with less data downstream
+If pipeline involves joining, join the largest and smallest tables first so that you work with less data downstream
+Use _TABLES_SUMMARY_ instead of _TABLES_ because it's cheaper.
+SELECT count(*) is free, SELECT count(columname) is not free
+ETL or ELT - If ETL reduces the amount to upload, then do it. If not, ELT. BQ service for this is BigQuery Transfer Service. An agent manages recurring data transfers.
+When updating data, if the data is normalised, just add newer updated values to the reference/fact table and reference the later start/creation date. If the data is denormalised, perform updates on a separate view/partition and then switch it out with the live/production one. If you want to change something based on a particular customer name, for example, put the updated values in a separate table and then use an outer join to append the updates.
+NOTE: Scripting (stored procedures) aren't a feature with BQ yet. Gotta write stuff in Python until it's out of Alpha and released to public.
+Don’t use BQ for outlier time series analysis - BigTable is better for that
+
+Reference for legit DML queries
+https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language
+
+-----------------------------------------------------------------
+
+
+Loading into BQ native storage
+https://cloud.google.com/bigquery/docs/loading-data
+Only GCS and local machine
+Allows you to use the whole BQ query capability - wildcard tables, partitioning, clustering, query caching
+
+Both batch & stream - batch load is free, streaming is not. But because loading data is free, there is a max 1000 per day quota. Failed load jobs count towards this quota. Max 15TB combined. Max 10M individual files.
+2 types of storage: active & long-term. Best practice is to put expiration dates on your data partitions upon creation/initiation or as a default config. Note: important that you expire partitions and not delete data because expiring partitions is free since it's considered as a different type of event than deletion
+If the schema changes sometimes, you can set Schema "Automatically detect" - https://cloud.google.com/bigquery/docs/schema-detect
+Automatically shards & shuffles data but that isn’t visible to users since it’s serverless
+Batchload formats: 1st) best for BQ are parquet (apache) or avro (hadoop) - internally compressed, self describing, comes with original schema; 2nd) json - new line means new row - do not indent or make it pretty - supports nesting, no schema; 3rd) csv, no schema, no nesting. Note: orc is a newer format that's like parquet and avro
+Regional Cloud Storage is cheaper than BQ storage
+If load CSV but it was not flagged as CSV, then it would error immediately.
+If load CSV but some rows were skipped on import, it would say that data is not fully imported.
+
+Reference: Loading avro files from GCS - how-to in console & CLI, IAM/permission requirements
+https://cloud.google.com/bigquery/docs/loading-data-cloud-storage-avro
+
+Reference: Loading data using BQ Data Transfer Service
+https://cloud.google.com/bigquery-transfer/docs/transfer-service-overview
+Campaign Manager
+Cloud Storage (beta)
+Google Ad Manager
+Google Ads
+Google Merchant Center (beta)
+Google Play (beta)
+Search Ads 360 (beta)
+YouTube Channel reports
+YouTube Content Owner reports
+Amazon S3 (beta)
+Teradata (beta)
+Amazon Redshift (beta)
+
+
+-----------------------------------------------------------------
+
+
+Federated Data Sources
+https://cloud.google.com/bigquery/external-data-sources
+https://cloud.google.com/bigquery/external-data-drive
+With Bigtable, GCS, Google Drive
+Good for: loading & cleaning in one pass into BQ, small amount of frequently changing data that you join with other tables
+Fastest query times: BQ native storage, GCS, Google Drive
+No wildcard table queries
+No partitioning or clustering
+In BQ native, queries get cached so that if you run the same query multiple times, it doesn’t cost extra. If using an external table, then you lose this benefit.
+If using GCS or Bigtable, they need to be in the same geographic location. No location limits if pulling from Google Drive.
+
+
+Stackdriver Logging
+https://cloud.google.com/logging/docs/export/configure_export_v2
+
+
+-----------------------------------------------------------------
+
+
+BigQuery ML
+
+Available models:
+Linear regression
+Binary logistic regression
+Multiclass logistic regression – max 50 categories – uses multinomial classifier + cross entropy loss function
+K-means clustering
+Tensorflow model import – takes previously trained Tensorflow models and get predictions using BQ ML
+
+CREATE MODEL statement – quota limit = 1000 queries per day per project
+https://cloud.google.com/bigquery-ml/quotas
+
+2 types of pricing: Flat-rate & On-demand
+https://cloud.google.com/bigquery-ml/pricing
+* You can only change your pricing model on a monthly basis
+* Model creation – 50 iterations max – first 10GB of data processed by CREATE MODEL per month is free under the BQ free tier
+* Evaluation, inspection, prediction – first 1 TB of data per month under BQ free tier
+Best way to estimate costs is to use Stackdriver audit logs to see the bytes billed by BQ ML
+
+
+
+
+
+
+
+
