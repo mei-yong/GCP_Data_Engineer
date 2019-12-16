@@ -1,4 +1,3 @@
-
 BigQuery
 
 Querying Data & Schema Design
@@ -15,18 +14,26 @@ If the reservation is too small, the query will still run until done just one af
 
 ANSI SQL queries - ACID compliant
 Failed queries are free - e.g. syntax error
-Can partition - on a datetype or int type
+
+Can partition - on a datetype or int type (ingestion time, date/timestamp, integer range)
 Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 3) a INT column (specify min 0, max 100, buckets/intervals)- if you want to partition on a STR column, could transform the string and mod to 1000 before treating it as a INT column. When quering, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
+
 Can cluster - but must be partitioned first
 If you know that you'll always want to query your table based on one of the columns (if >50% of queries use a particular where clause), you should cluster the table based on that column - e.g. if you always want to query based on a particular user, should cluster on userID. Can also cluster based on multiple columns just by doing column1, column2 - like indexing. MUST already be partitioned by DATE or TIMESTAMP column to perform clustering.
 Note: partitioning and clustering have to be done at table creation - create a new table and copy the data if you've already created the table
 For tables that take streaming/live data, the latest day goes into a new partition but that new data is not clustered - the older partitions are clustered and are sorted. BigQuery then adds the new partition data to the other clusters on a schedule. If you want to force a recluster, use DML in the necessary partition. Reclustering is a system event.
-Can wildcard table query - use backticks, asterisk, and the _TABLE_SUFFIX function (`gsod-public.gsod_dataset.gsod_table*` WHERE _TABLE_SUFFIX IN RANGE ('20190101', '20191231'))
+
+
+Wildcard table query
+https://cloud.google.com/bigquery/docs/reference/standard-sql/wildcard-table-reference
+Standard SQL - use backticks, asterisk, and the _TABLE_SUFFIX function (`gsod-public.gsod_dataset.gsod_table*` WHERE _TABLE_SUFFIX BETWEEN '20190101' AND '20191231')
+Legacy SQL - FROM TABLE_DATE_RANGE([mydataset.sea_weather_], TIMESTAMP("2016-05-01"), TIMESTAMP("2016-05-09"))
+
 For big tables (>10GB) create nested and repeated fields instead of normalising - unless you plan to perform UPDATE or DELETE on it often - FROM table, UNNEST(columnname)
 Use temp tables instead of WITH clauses where possible since it doesn't improve cost or performance
+
 APPROX_COUNT_DISTINCT() has 1% error margin but is much faster than COUNT_DISTINCT()
 Use LIMIT if you want to ORDER BY a whole table
-Don't use DML (single row updates) because BQ works on OLAP
 If pipeline needs filters, do all the filters first so you work with less data downstream
 If pipeline involves joining, join the largest and smallest tables first so that you work with less data downstream
 Use _TABLES_SUMMARY_ instead of _TABLES_ because it's cheaper.
@@ -38,6 +45,57 @@ Don’t use BQ for outlier time series analysis - BigTable is better for that
 
 Reference for legit DML queries
 https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language
+
+Aliasing
+https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#explicit-alias-visibility
+Only clauses after the alias has been made can reference said alias
+
+Do's & Don'ts
+https://cloud.google.com/bigquery/docs/best-practices-performance-patterns
+
+Don't - self-join
+Do - window function
+analytic_function_name ( [ argument_list ] )
+  OVER (
+    [ PARTITION BY partition_expression_list ]
+    [ ORDER BY expression [{ ASC | DESC }] [, ...] ]
+    [ window_frame_clause ]
+  )
+  
+Don't - have data skew - symptom max compute time is much higher than average compute time in query plan
+Do - Filter your data as early as possible & use an approximate aggregate function such as APPROX_TOP_COUNT to determine if the data is skewed - https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#approx_top_count
+SELECT APPROX_TOP_COUNT(x, 2) as approx_top_count
+FROM UNNEST(["apple", "apple", "pear", "pear", "pear", "banana"]) as x;
++-------------------------+
+| approx_top_count        |
++-------------------------+
+| [{pear, 3}, {apple, 2}] |
++-------------------------+
+
+Don't - CROSS JOIN on all records
+Do - if you must CROSS JOIN, GROUP BY to pre-aggregate the data or use a window function instead
+
+Don't - use point-specific DML (single row updates) because BQ works on OLAP (Online Analytical Processing) not OLTP (Online Transaction Processing) - if you need OLTP, opt for Cloud SQL instead
+Do - UPDATE & DELETE in batches. avoid INSERT single rows
+
+
+BQ Functions
+https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators
+
+SAFE.function_name()
+returns NULL instead of an error
+e.g. for SUBSTR function that normally does not support negative values
+
+SAFE_CAST("apple" AS INT64)
+
+SAFE_DIVIDE(X, Y)
+SAFE_MULTIPLY(X, Y)
+SAFE_NEGATE(X)
+SAFE_ADD(X, Y)
+SAFE_SUBTRACT(X, Y)
+returns NULL instead of errors
+
+
 
 -----------------------------------------------------------------
 
@@ -115,6 +173,24 @@ https://cloud.google.com/bigquery-ml/pricing
 * Model creation – 50 iterations max – first 10GB of data processed by CREATE MODEL per month is free under the BQ free tier
 * Evaluation, inspection, prediction – first 1 TB of data per month under BQ free tier
 Best way to estimate costs is to use Stackdriver audit logs to see the bytes billed by BQ ML
+
+
+-----------------------------------------------------------------
+
+BQ CLI
+
+Reference: How to bq commands
+https://cloud.google.com/bigquery/docs/bq-command-line-tool
+https://cloud.google.com/bigquery/docs/reference/bq-cli-reference
+
+
+
+
+
+
+
+
+
 
 
 
