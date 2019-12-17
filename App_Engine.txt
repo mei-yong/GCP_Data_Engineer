@@ -1,0 +1,10 @@
+
+App Engine
+
+Traffic Splitting
+https://cloud.google.com/appengine/docs/standard/python/splitting-traffic
+You can use traffic splitting to specify a percentage distribution of traffic across two or more of the versions within a service. Splitting traffic allows you to conduct A/B testing between your versions and provides control over the pace when rolling out features.
+
+
+
+
