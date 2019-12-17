@@ -16,12 +16,17 @@ ANSI SQL queries - ACID compliant
 Failed queries are free - e.g. syntax error
 
 Can partition - on a datetype or int type (ingestion time, date/timestamp, integer range)
-Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 3) a INT column (specify min 0, max 100, buckets/intervals)- if you want to partition on a STR column, could transform the string and mod to 1000 before treating it as a INT column. When quering, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
+Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 3) a INT column (specify min 0, max 100, buckets/intervals)- if you want to partition on a STR column, could transform the string and mod to 1000 before treating it as a INT column. 
+When quering a table partitioned by ingestion time, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
+When partitioning by TIMESTAMP or DATE or INT, 2 special additional partitions are also created - __NULL__ & __UNPARTITIONED__ for nulls and values outside the allowed range of dates/ints (before 0001-01-01 or after 9999-12-31 - note that DML statements cannot ref prior 1970-01-01 or after 2159-12-31)
+As an alternative to partitioning, you could shard the tables but it's not as good as partitioning because each of the sharded tables need to have a copy of the schema and metadata, and permissions need to be verified for every single table. Also, you can query up to 4000 partitions but only up to 1000 tables.
 
 Can cluster - but must be partitioned first
 If you know that you'll always want to query your table based on one of the columns (if >50% of queries use a particular where clause), you should cluster the table based on that column - e.g. if you always want to query based on a particular user, should cluster on userID. Can also cluster based on multiple columns just by doing column1, column2 - like indexing. MUST already be partitioned by DATE or TIMESTAMP column to perform clustering.
+You should opt for clustering if: you don't care how the data will be clustered and let BQ automatically figure out how the data should be clustered for optimal performance and cost AND/OR you need more than 4000 partitions (e.g. probable use case - IDs of some sort)
+You can partition and cluster on the same column to get the benefits of both. First partition according to the specified range, within each range data is clustered. You can see the upper bound of query cost before you run a query - could be less if the cluster is much smaller than the partition.
 Note: partitioning and clustering have to be done at table creation - create a new table and copy the data if you've already created the table
-For tables that take streaming/live data, the latest day goes into a new partition but that new data is not clustered - the older partitions are clustered and are sorted. BigQuery then adds the new partition data to the other clusters on a schedule. If you want to force a recluster, use DML in the necessary partition. Reclustering is a system event.
+For tables that take streaming/live data, the latest day goes into a new partition but that new data is not clustered - the older partitions are clustered and are sorted. BigQuery then adds the new partition data to the other clusters on a schedule. If you want to force a recluster, use DML in the necessary partition. Reclustering is a system event. You can set require_partitioning_filter so that any queries on the table must include a partition clause
 
 
 Wildcard table query
@@ -182,17 +187,6 @@ BQ CLI
 Reference: How to bq commands
 https://cloud.google.com/bigquery/docs/bq-command-line-tool
 https://cloud.google.com/bigquery/docs/reference/bq-cli-reference
-
-
-
-
-
-
-
-
-
-
-
 
 
 
