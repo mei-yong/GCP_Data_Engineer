@@ -1,0 +1,16 @@
+
+Datastore
+
+
+Indexing
+https://cloud.google.com/datastore/docs/concepts/indexes
+Build-in indexes - auto-predefines an index for each property of each entity kind (good for simple queries)
+COmposite indexes - multiple property values per indexed entity - defined in an index config file - index.yaml (more complex queries)
+
+Schedule exports of entities by deploying App Engine service that calls the Datastore mode managed export feature then run on a schedule using App Engine Cron Service
+https://cloud.google.com/datastore/docs/schedule-export
+1) Enable billing for your Google Cloud project. Only Google Cloud projects with billing enabled can use the export and import feature.
+2) Create a Cloud Storage bucket for your project. All managed exports and imports rely on Cloud Storage. You must use the same location for your Cloud Storage bucket and your Datastore mode database.
+3) Install the Google Cloud SDK to deploy the application.
+
+
