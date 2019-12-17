@@ -2,12 +2,17 @@
 GCP Data Engineer Exam Revision Materials
 
 Practice Exams
+
+[Free]
 https://cloud.google.com/certification/practice-exam/data-engineer
 https://cloud.google.com/certification/practice-exam/cloud-architect
 https://cloud.google.com/certification/practice-exam/cloud-developer
 https://cloud.google.com/certification/practice-exam/cloud-security-engineer
+
+[Not free]
 https://www.whizlabs.com/google-cloud-certified-professional-data-engineer/
 https://linuxacademy.com/course/google-cloud-data-engineer/
+https://www.udemy.com/course/google-cloud-certified-professional-data-engineer-practice-exams/
 
 --------------------------------------------------------------------------
 
@@ -29,8 +34,8 @@ https://sreeninet.wordpress.com/2019/05/30/my-data-engineer-certification-notes/
 Post-exam notes - what topics were covered WITH links to resources
 https://deploy.live/blog/google-cloud-certified-professional-data-engineer/
 
-
-
+Another Github repo with someone's notes to all their resources
+https://github.com/sathishvj/awesome-gcp-certifications/blob/master/professional-data-engineer.md
 
 
 
