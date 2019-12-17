@@ -11,6 +11,11 @@ Slots are 'fairly divided' amongst jobs by BQ. If you have a high priority job, 
 Guide: 2000 BQ slots for 50 medium complexity queries simultaneously.
 If the reservation is too small, the query will still run until done just one after another BUT BE WARNED queries get timed out after 6 hours - symptom, see if the query gets scheduled in less than a second and if it's more, then there's a problem.
 
+Reference: Query Plan
+https://cloud.google.com/bigquery/query-plan-explanation
+Stage timings are percentages of the whole job
+WAIT, READ, COMPUTE, WRITE are the most common steps in a stage
+You can get the query plan via API and it'll return a JSON - call jobs.get
 
 ANSI SQL queries - ACID compliant
 Failed queries are free - e.g. syntax error
@@ -64,6 +69,14 @@ https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#expli
 Only clauses after the alias has been made can reference said alias
 
 Do's & Don'ts
+https://cloud.google.com/bigquery/docs/best-practices-performance-overview
+
+Input data and data sources (I/O): How many bytes does your query read?
+Communication between nodes (shuffling): How many bytes does your query pass to the next stage? How many bytes does your query pass to each slot?
+Computation: How much CPU work does your query require?
+Outputs (materialization): How many bytes does your query write?
+Query anti-patterns: Are your queries following SQL best practices?
+
 https://cloud.google.com/bigquery/docs/best-practices-performance-patterns
 
 Don't - self-join
