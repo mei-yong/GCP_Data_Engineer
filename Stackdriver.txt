@@ -66,9 +66,9 @@ Instance system event logs - live migration events
 Export logs & setting up sinks based on your filters
 https://cloud.google.com/logging/docs/export/
 https://cloud.google.com/logging/docs/export/aggregated_exports
-GCS - storage
-BQ - data analysis
-PubSub topics - to pass to wherever else
+GCS - storage (no good for instantaneous reads)
+BQ - data analysis (no good for instantaneous reads)
+PubSub topics - to pass to wherever else (suitable for instantaneous reads)
 The default sink only has logs from a particular resource (e.g. the one VM) so you need to set the sink's includeChildren=True
 
 
