@@ -15,6 +15,9 @@ If the reservation is too small, the query will still run until done just one af
 ANSI SQL queries - ACID compliant
 Failed queries are free - e.g. syntax error
 
+Partitioning & Clustering
+https://cloud.google.com/bigquery/docs/partitioned-tables
+
 Can partition - on a datetype or int type (ingestion time, date/timestamp, integer range)
 Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 3) a INT column (specify min 0, max 100, buckets/intervals)- if you want to partition on a STR column, could transform the string and mod to 1000 before treating it as a INT column. 
 When quering a table partitioned by ingestion time, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
