@@ -1,0 +1,53 @@
+
+Cloud Composer
+https://cloud.google.com/composer/
+https://cloud.google.com/composer/docs/
+* Apache Airflow - open source
+* Cloud agnostic
+* Can handle workflows that are hybrid on-prem cloud
+* Pricing based on vCPU/hour, GB/month, and GB transferred/month
+
+Airflow + GKE + GCS
+
+1) Enable Composer + other APIs
+2) Create Composer Environment - bucket, region, etc
+3) Set Composer variables - project ID, GCS bucket, region
+4) Add DAG (Directed Acyclic Graphs) files for Composer to execute
+
+Use cases
+Create Dataproc cluster, submit job, delete cluster
+Kick off Dataflow pipeline job taking data from GCS, transforms it, and writes output to BigQuery
+
+--------------------------------------------------------------
+
+Inner Workings
+
+Composer deploys Cloud SQL + App Engine in the tenant project for unified Cloud Identity and Access Management
+Cloud SQL - stores Airflow metadata - backed up daily - access limted to default or specified custom service account
+App Engine - hosts the Airflow web server
+
+In the GKE cluster:
+Airflow scheduler
+Worker nodes
+CeleryExecutor - for scaling up workers - https://airflow.apache.org/docs/stable/howto/executor/use-celery.html
+Redis - message broker for CeleryExecutor
+KubernetesPodOperator - handles cluster resourcing - https://cloud.google.com/composer/docs/how-to/using/using-kubernetes-pod-operator
+
+--------------------------------------------------------------
+
+# Create GCS bucket
+gsutil mb -l <region> <gs://bucket_filepath>
+
+# Configure Composer variables
+gcloud composer environemnts run <ENVIRONMENT_NAME> --location <region> variables -- --set <KEY_VALUE>
+
+e.g.
+gcloud composer environments run my-environment --location us-central1 variables -- --set gcp_project <PROJECT_ID>
+gcloud composer environments run my-environment --location us-central1 variables -- --set gcs_bucket gs://output-PROJECT_ID
+gcloud composer environments run my-environment --location us-central1 variables -- --set gce_zone us-central1-c
+
+# Add the workflow DAG Python file to Composer DAG folder
+
+
+
+
