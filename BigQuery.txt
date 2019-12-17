@@ -33,9 +33,14 @@ For tables that take streaming/live data, the latest day goes into a new partiti
 
 
 Wildcard table query
+https://cloud.google.com/bigquery/docs/querying-wildcard-tables
 https://cloud.google.com/bigquery/docs/reference/standard-sql/wildcard-table-reference
 Standard SQL - use backticks, asterisk, and the _TABLE_SUFFIX function (`gsod-public.gsod_dataset.gsod_table*` WHERE _TABLE_SUFFIX BETWEEN '20190101' AND '20191231')
 Legacy SQL - FROM TABLE_DATE_RANGE([mydataset.sea_weather_], TIMESTAMP("2016-05-01"), TIMESTAMP("2016-05-09"))
+Does not work on views
+Does not work on external/federated data sets - i.e. only works on BQ native storage
+Does not utilise caching so every single wildcard query gets billed
+Cannot be used as part of DML UPDATE statement target table - but can be used as a FROM table
 
 For big tables (>10GB) create nested and repeated fields instead of normalising - unless you plan to perform UPDATE or DELETE on it often - FROM table, UNNEST(columnname)
 Use temp tables instead of WITH clauses where possible since it doesn't improve cost or performance
