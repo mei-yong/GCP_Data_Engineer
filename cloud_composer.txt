@@ -48,6 +48,9 @@ gcloud composer environments run my-environment --location us-central1 variables
 
 # Add the workflow DAG Python file to Composer DAG folder
 
+--------------------------------------------------------------
 
+Reference: How to integrate with GCP, AWS, Azure, Databricks, Qubole
+https://airflow.apache.org/docs/stable/integration.html#bigquerycreateemptytableoperator
 
 
