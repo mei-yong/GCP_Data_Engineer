@@ -1,0 +1,66 @@
+
+Stackdriver
+Supports GCP & AWS but not Azure
+
+https://cloud.google.com/spanner/docs/monitoring-stackdriver
+https://cloud.google.com/monitoring/kubernetes-engine/
+https://cloud.google.com/bigquery/docs/reference/auditlogs/#mapping-audit-entries-to-log-streams
+https://cloud.google.com/bigquery/docs/monitoring#slots-available
+
+
+
+Monitoring & Logging Agents
+Navigation > Monitoring > Install Agents
+https://app.google.stackdriver.com/settings/accounts/agent?project=qwiklabs-gcp-01-0b4f3d6b95bf
+
+Monitoring Agent
+The Stackdriver Monitoring agent is a collectd-based daemon that gathers system and application metrics from virtual machine instances and sends them to Monitoring. By default, the Monitoring agent collects disk, CPU, network, and process metrics. Configuring the Monitoring agent allows third-party applications to get the full list of agent metrics. 
+
+Logging Agent
+The Stackdriver Logging agent streams logs from your VM instances and from selected third-party software packages to Stackdriver Logging. It is a best practice to run the Stackdriver Logging agent on all your VM instances.
+
+# Install Stackdriver monitoring agent on VM
+curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+sudo bash install-monitoring-agent.sh
+
+# Install Stackdriver logging agent on VM
+curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+sudo bash install-logging-agent.sh
+
+
+
+Uptime Checks
+Navigation > Uptime Checks > Uptime Checks Overview
+https://app.google.stackdriver.com/uptime?project=qwiklabs-gcp-01-0b4f3d6b95bf
+Uptime checks verify that a resource is always accessible.
+
+Resource types - URL, Instance, App Engine, Elastic Load Balancer
+Check type - HTTP, HTTPS, TCP
+You can also specify port, location, timeouts and authentication
+
+
+
+Alerting Policy
+Navigation > Alerting > Create a Policy
+https://app.google.stackdriver.com/policies/create?project=qwiklabs-gcp-01-0b4f3d6b95bf
+
+
+
+Dashboards
+Navigation > Dashboards > Create Dashboard.
+
+
+
+Logging
+Navigation > Logging
+Specify the first 2 dropdowns - instance-name, syslog
+
+When you stop the VM instance
+* the logs stop generating more entries
+* the uptime checks flag up 'Connection Error - Host Unreachable' > click on the check name > see Location Results 'All locations failed'
+
+
+
+
+
+
