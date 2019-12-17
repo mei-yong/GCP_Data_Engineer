@@ -5,9 +5,7 @@ Practice Exams
 
 [Free]
 https://cloud.google.com/certification/practice-exam/data-engineer
-https://cloud.google.com/certification/practice-exam/cloud-architect
 https://cloud.google.com/certification/practice-exam/cloud-developer
-https://cloud.google.com/certification/practice-exam/cloud-security-engineer
 
 [Not free]
 https://www.whizlabs.com/google-cloud-certified-professional-data-engineer/
