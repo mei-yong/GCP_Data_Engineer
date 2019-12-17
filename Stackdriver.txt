@@ -1,13 +1,9 @@
 
 Stackdriver
-Supports GCP & AWS but not Azure
-
-https://cloud.google.com/spanner/docs/monitoring-stackdriver
-https://cloud.google.com/monitoring/kubernetes-engine/
-https://cloud.google.com/bigquery/docs/reference/auditlogs/#mapping-audit-entries-to-log-streams
-https://cloud.google.com/bigquery/docs/monitoring#slots-available
+* Supports GCP & AWS but not Azure
 
 
+---------------------------------------------------------------
 
 Monitoring & Logging Agents
 Navigation > Monitoring > Install Agents
@@ -27,17 +23,18 @@ sudo bash install-monitoring-agent.sh
 curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
 sudo bash install-logging-agent.sh
 
-
+---------------------------------------------------------------
 
 Uptime Checks
 Navigation > Uptime Checks > Uptime Checks Overview
 https://app.google.stackdriver.com/uptime?project=qwiklabs-gcp-01-0b4f3d6b95bf
 Uptime checks verify that a resource is always accessible.
+the uptime checks flag up 'Connection Error - Host Unreachable' > click on the check name > see Location Results 'All locations failed'
+
 
 Resource types - URL, Instance, App Engine, Elastic Load Balancer
 Check type - HTTP, HTTPS, TCP
 You can also specify port, location, timeouts and authentication
-
 
 
 Alerting Policy
@@ -45,19 +42,52 @@ Navigation > Alerting > Create a Policy
 https://app.google.stackdriver.com/policies/create?project=qwiklabs-gcp-01-0b4f3d6b95bf
 
 
-
 Dashboards
 Navigation > Dashboards > Create Dashboard.
 
-
+---------------------------------------------------------------
 
 Logging
 Navigation > Logging
 Specify the first 2 dropdowns - instance-name, syslog
 
-When you stop the VM instance
-* the logs stop generating more entries
-* the uptime checks flag up 'Connection Error - Host Unreachable' > click on the check name > see Location Results 'All locations failed'
+
+Reference: Different logs, their access requirements and pricing
+https://cloud.google.com/logging/docs/audit/#admin-activity
+https://cloud.google.com/stackdriver/pricing
+Free, on-by-default: Admin Activity audit logs, System Event logs, Data Access audit logs (BQ only other tools DA logs aren't free), Access Transparency logs, Excluded logs
+
+Export logs & setting up sinks based on your filters
+https://cloud.google.com/logging/docs/export/
+https://cloud.google.com/logging/docs/export/aggregated_exports
+GCS - storage
+BQ - data analysis
+PubSub topics - to pass to wherever else
+The default sink only has logs from a particular resource (e.g. the one VM) so you need to set the sink's includeChildren=True
+
+
+---------------------------------------------------------------
+
+Reference: Stackdriver for GKE
+https://cloud.google.com/monitoring/kubernetes-engine/
+GKE clusters have Stackdriver already on it by default
+In the summary pane, you can view a cluster's key metrics, such as CPU utilization, memory utilization, and the number of open incidents.
+You can view clusters by their infrastructure, workloads, or services.
+You can inspect namespaces, nodes, workloads, services, pods, and containers.
+For pods and containers, you can view metrics as a function of time and view log entries using the Logs Viewer.
+
+---------------------------------------------------------------
+
+Reference: Stackdriver for Spanner
+https://cloud.google.com/spanner/docs/monitoring-stackdriver
+
+---------------------------------------------------------------
+
+Reference: Stackdriver for BQ
+https://cloud.google.com/bigquery/docs/reference/auditlogs/
+https://cloud.google.com/bigquery/docs/monitoring#slots-available
+Specifies things like a wildcard query only generates one TableDataRead entry instead of one for each table, etc
+You can track and visualise BQ slot usage
 
 
 
