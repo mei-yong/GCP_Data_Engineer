@@ -57,6 +57,12 @@ https://cloud.google.com/logging/docs/audit/#admin-activity
 https://cloud.google.com/stackdriver/pricing
 Free, on-by-default: Admin Activity audit logs, System Event logs, Data Access audit logs (BQ only other tools DA logs aren't free), Access Transparency logs, Excluded logs
 
+Key log types:
+Instance activity logs - create, modify, destroy events
+Instance data access logs - read activities
+Instance syslog logs - for systemd services
+Instance system event logs - live migration events
+
 Export logs & setting up sinks based on your filters
 https://cloud.google.com/logging/docs/export/
 https://cloud.google.com/logging/docs/export/aggregated_exports
