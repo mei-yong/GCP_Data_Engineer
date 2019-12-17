@@ -1,11 +1,39 @@
 
 Datastore
 
+* NoSQL - semi-structured
+* ACID compliant
+* Transactional db - not so good for analytics
+* Multi-region - but choose single region for lower latency
+* Sharding & replication handled automatically (like BQ)
+* Serverless so no need to provision instances, compute, storage, etc
+* One Datastore db per project
+* IAM predefined role - owner, user, viewer, import/export admin, index admin
+* Think of the data structure like a JSON or Python dictionary
+  * Table -> Kind, Row -> Entity, Column -> Property
+  * Kind: { Entity: { Property1: value, Property2: value, Property3: value} }
+  * entities can be nested/hierarchical
+
+Good for:
+Use cases that require ACID transactions (i.e. if a change is made to one instance, all of the users can see the change in the correct order that it happened in)
+Financial transactions
+Real-time inventory
+Mobile app user profiles
+Game save states
+
+Not good for:
+Analytics - use BQ or Spanner instead
+Extreme scale (>10M read/writes per secon) - use BigTable instead
+If you don't need ACID transactions - use BigTable instead
+Lift & shift exsiting MySQL - use Cloud SQL instead
+Near zero latency - use Redis (in-memory) instead
 
 Indexing
 https://cloud.google.com/datastore/docs/concepts/indexes
 Build-in indexes - auto-predefines an index for each property of each entity kind (good for simple queries)
-COmposite indexes - multiple property values per indexed entity - defined in an index config file - index.yaml (more complex queries)
+Composite indexes - multiple property values per indexed entity - defined in an index config file - index.yaml (more complex queries)
+> gcloud datastore create-indexes index.yaml
+The default index is to create an entry for every possible combination of property values which increases storage and decreases performance - instead, do not use index properties that don't need indexing & use the index.yaml to narrow the index scope
 
 Schedule exports of entities by deploying App Engine service that calls the Datastore mode managed export feature then run on a schedule using App Engine Cron Service
 https://cloud.google.com/datastore/docs/schedule-export
@@ -14,3 +42,7 @@ https://cloud.google.com/datastore/docs/schedule-export
 3) Install the Google Cloud SDK to deploy the application.
 
 
+Querying the db
+
+Include: entity kind, filters, sort order
+Methods: programmatic, web console, Google Query Language (GQL)
