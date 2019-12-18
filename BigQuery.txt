@@ -2,6 +2,8 @@ BigQuery
 
 Querying Data & Schema Design
 
+-----------------------------------------------------------------
+
 How a Query Works
 1) Data is stored in distributed storage and called by 'workers' called slots
 2) Stage 1: The slots look for matches based on the WHERE clause and then return results to 1 big slots
@@ -20,6 +22,16 @@ You can get the query plan via API and it'll return a JSON - call jobs.get
 ANSI SQL queries - ACID compliant
 Failed queries are free - e.g. syntax error
 
+-----------------------------------------------------------------
+
+Advantages & notes about Standard SQL vs Legacy SQL
+Standard - `project.dataset.table`, legacy - [project:dataset:table]
+Can use WITH clauses & SQL functions
+Can include subqueries in the SELECT list & WHERE clause - i.e. SELECT columnA, (SELECT otherColumn FROM someOtherTable) AS columnB
+Can use ARRAY & STRUCT
+Can use COUNT(DISTINCT columnA) with accuracy of EXACT_COUNT_DISTINCT without scaling limitations
+
+
 Partitioning & Clustering
 https://cloud.google.com/bigquery/docs/partitioned-tables
 
@@ -28,6 +40,7 @@ Partitioning can be based on: 1) ingestion time, 2) a TIMESTAMP or DATE column, 
 When quering a table partitioned by ingestion time, specify WHERE _PARTITIONTIME > TIMESTAMP_SUB(TIMESTAMP('yyyy-mm-dd'), INTERVAL 5 DAY). Creation syntax --time_partitioning_day   --partition by 'etcetc'.
 When partitioning by TIMESTAMP or DATE or INT, 2 special additional partitions are also created - __NULL__ & __UNPARTITIONED__ for nulls and values outside the allowed range of dates/ints (before 0001-01-01 or after 9999-12-31 - note that DML statements cannot ref prior 1970-01-01 or after 2159-12-31)
 As an alternative to partitioning, you could shard the tables but it's not as good as partitioning because each of the sharded tables need to have a copy of the schema and metadata, and permissions need to be verified for every single table. Also, you can query up to 4000 partitions but only up to 1000 tables.
+Tail skew - see the dos & don'ts below
 
 Can cluster - but must be partitioned first
 If you know that you'll always want to query your table based on one of the columns (if >50% of queries use a particular where clause), you should cluster the table based on that column - e.g. if you always want to query based on a particular user, should cluster on userID. Can also cluster based on multiple columns just by doing column1, column2 - like indexing. MUST already be partitioned by DATE or TIMESTAMP column to perform clustering.
@@ -51,7 +64,7 @@ For big tables (>10GB) create nested and repeated fields instead of normalising 
 Use temp tables instead of WITH clauses where possible since it doesn't improve cost or performance
 
 APPROX_COUNT_DISTINCT() has 1% error margin but is much faster than COUNT_DISTINCT()
-Use LIMIT if you want to ORDER BY a whole table
+Use LIMIT if you want to ORDER BY a whole table. BUT be aware that LIMIT doesn't affect costs of compute, only affects the displaying of entries.
 If pipeline needs filters, do all the filters first so you work with less data downstream
 If pipeline involves joining, join the largest and smallest tables first so that you work with less data downstream
 Use _TABLES_SUMMARY_ instead of _TABLES_ because it's cheaper.
@@ -88,7 +101,7 @@ analytic_function_name ( [ argument_list ] )
     [ window_frame_clause ]
   )
   
-Don't - have data skew - symptom max compute time is much higher than average compute time in query plan
+Don't - have data skew aka tail skew - symptom max compute time is much higher than average compute time in query plan
 Do - Filter your data as early as possible & use an approximate aggregate function such as APPROX_TOP_COUNT to determine if the data is skewed - https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators#approx_top_count
 SELECT APPROX_TOP_COUNT(x, 2) as approx_top_count
 FROM UNNEST(["apple", "apple", "pear", "pear", "pear", "banana"]) as x;
@@ -103,6 +116,9 @@ Do - if you must CROSS JOIN, GROUP BY to pre-aggregate the data or use a window 
 
 Don't - use point-specific DML (single row updates) because BQ works on OLAP (Online Analytical Processing) not OLTP (Online Transaction Processing) - if you need OLTP, opt for Cloud SQL instead
 Do - UPDATE & DELETE in batches. avoid INSERT single rows
+
+Don't - use JOIN
+Do - if possible, use sub-queries because they're more efficient
 
 
 BQ Functions
@@ -122,8 +138,23 @@ SAFE_SUBTRACT(X, Y)
 returns NULL instead of errors
 
 
+Key Words for Queries
+Datatypes - STRUCT, ARRAY, TIMESTAMP, INT64, FLOAT64, STRING
+Aggregate - SUM, COUNT
+Navigations - LEAD, LAG
+Ranking + numbering - RANK, CUME_DIST
+Group by without actual aggregation - PARITION BY
+Use an inner table - WITH
+Create array - ARRAY_AGG
+Break up array - UNNEST
+Create struct - STRUCT
+
+
+
 
 -----------------------------------------------------------------
+-----------------------------------------------------------------
+
 
 
 Loading into BQ native storage
@@ -158,9 +189,10 @@ Amazon S3 (beta)
 Teradata (beta)
 Amazon Redshift (beta)
 
+Exporting Data out of BQ
+You can export to GCS (CSV, avro, json) but it's limited to 1gb per file. Can use wildcards to split your data into multiple files - CLI: bq extract
 
 -----------------------------------------------------------------
-
 
 Federated Data Sources
 https://cloud.google.com/bigquery/external-data-sources
@@ -178,6 +210,29 @@ Stackdriver Logging
 https://cloud.google.com/logging/docs/export/configure_export_v2
 
 
+-----------------------------------------------------------------
+
+Costing
+Storage cost is similar to GCS but GCS is cheaper
+Older unread data costs less
+Query cost is based on data processed
+Batch load is free (but there's a limit), streaming is not and is based on data rate
+Reduce cost but only picking columns you want to work with and avoid SELECT *
+Queries on metadata are free
+Cached queries are free - typically kept for 24 hours
+Exporting is free
+Billing is done on the project where the job is running irrespective of where the dataset is from - e.g. when quering the public datasets, its your own project that gets charged
+
+
+-----------------------------------------------------------------
+
+IAM
+Can set controls at project & dataset level
+Views (which are virtual tables) don't have direct IAM roles but views are put under datasets and inherit the dataset's IAM controls - this is called authorised view. To share particular view rows, add users as a column and the view will check the SESSION_USER to see if they're authorised to read
+Project level - admin, data owner, editor, viewer, user, job user
+Dataset level - owner, writer, reader
+
+-----------------------------------------------------------------
 -----------------------------------------------------------------
 
 
