@@ -1,5 +1,177 @@
 
 Dataflow
 
+* Managed instance of Apache Beam
+* Performs both batch and streaming ETL data pipelines using the same Java or Python code (make streaming data bounded)
+* Pipelines are region based
+
+Input -> PCollection -> PCollection -> Output
+Arrows are transforms and ParDo is a type of transform
+
+Element - a single entry of data e.g. table row
+PCollection - distributed data set, data input, data output
+ParDo - type of transform applied to individual elements - e.g. filtering
+Transform - step in a pipeline 
+Source/Sink - data source/output - GCS, BQ, PubSub
+Runner - pipeline execution - local runner or DataflowRunner
+
+Reference: Use cases and pipeline design
 https://cloud.google.com/blog/products/gcp/guide-to-common-cloud-dataflow-use-case-patterns-part-1
+
+
+------------------------------------------------------------
+
+
+Use Dataflow for:
+Use cases that require streaming data pipelines or pipelines that require both batch & stream
+E.g. credit card fraud monitoring - need streaming new data in real-time but also needs historical batch data for training ML models to detect fraud
+
+Don't use Dataflow if:
+You only need batch (and current processes uses Hadoop Spark, Hive, Pig)
+You want to have iterative processing and notebooks
+You want to use ML with Spark ML
+You want to have a hands-on/DevOps approach to operations (not serverless)
+
+Integration
+Native - PubSub, BQ, ML Engine
+Connectors - BigTable, Apache Kafka
+
+
+------------------------------------------------------------
+
+
+Streaming Considerations
+
+Windowing
+https://beam.apache.org/documentation/programming-guide/#windowing
+Types: fixed time, sliding time, per-session, single global, calendar-based (or custom WindowFn)
+GroupByKey implicitly groups elements of a PCollection by key and window
+You set windowing at the beginning but it isn’t actually used until an aggregate method like GroupByKey is used
+In a sliding time window, the duration of the window is how long the window is and the period is how frequently a new window is created. You can have 60s duration and 30s period.
+With session windows, you need to specify the minimum gap duration so that it’ll know how much idle time warrants creating a new window – i.e. did a user have 2 sessions with a 10min gap or is it all one big session?
+
+Watermarks
+A timestamp - this could be provided by PubSub or by the original source
+The expected lag time between data event time and data processing time. If your watermark is 30s and window is 5mins, then the window gets closed at 5:30
+
+
+Triggers
+https://beam.apache.org/documentation/programming-guide/#triggers
+Determine when to emit the aggregated results of each window pane. Set as a parameter in the WindowInto transform
+Types: event time, processing time, data-driven, composite
+Allows for early results before all data is in
+Allows for results taking into account late data by setting it after the watermark
+
+
+Key Tips
+Be wary that bounded dataset items likely all have the same timestamp since they’d be created in a big batch.
+Must change default window and trigger settings or else it’ll do a global window and not properly aggregate data as it won’t know how to or simply not deal with late data
+
+
+------------------------------------------------------------
+
+
+Side Inputs
+Can be static, can also be a list or mapping
+If you want to side input a PCollection, you need to convert to list or map first
+Syntax: parDo.withsideInputs
+
+Map
+map - 1:1 - e.g. filtering, convert type, extract parts of input, calculate from different inputs
+flatmap non 1:1 (Java uses parDo) - e.g. return the line only for lines that contain the searchTerm
+
+groupBy
+Aggregates data after the mapping
+Combine is faster because it distributes across multiple workers - e.g. sum, average
+GroupBy is good for custom operations - e.g. groupby state and zipcode
+Combine by key - e.g. total sales by person
+
+
+------------------------------------------------------------
+
+
+IAM
+Project level only
+Pipeline data access is separate from pipeline access - so being able to edit the pipeline doesn't mean you can see the data it processes by default
+
+Admin - full pipeline access + machine type config + GCS config
+Developer - full pipeline access
+Viewer - view only
+Worker - specifically for service accounts only
+
+
+------------------------------------------------------------
+
+
+Example Syntax to run a pipeline
+
+Traffic data -> PubSub Topic: sandiego -> Subscription pulls messages into Dataflow -> Dataflow calculates average speed -> output to BigQuery
+
+# Navigation > APIs & Services > Enable Dataflow API
+# Create BQ dataset
+bq mk --dataset $DEVSHELL_PROJECT_ID:demos
+# Create GCS bucket
+gsutil mb gs://$DEVSHELL_PROJECT_ID
+# Create PubSub topic & stream data
+cd ~/url
+gcloud pubsub topics create sandiego
+./download_data.sh
+sudo pip install -U gogle-cloud-pubsub
+./send_sensor_data.py --speedFactor=60 --project=$DEVSHELL_PROJECT_ID
+
+# In a new Shell, execute Dataflow pipeline
+cd ~/url
+./run_oncloud.sh $DEVSHELL_PROJECT_ID $DEVSHELL_PROJECT_ID AverageSpeeds
+
+# Shut down pipeline
+* Drain - finish processing buffered jobs before shutting down
+* Cancel - full stop and cancels existing buffering jobs immediately
+
+
+------------------------------------------------------------
+
+
+Example Syntax for pipeline file
+
+Pipeline.create
+Pipeline.apply - setup individual tasks
+Pipeline.run - run the graph
+Transform - make sure to give it a name like how you name functions
+| - means apply in Python
+To run in CLI, > python test-pipeline.py dataflowrunner
+
+
+Time based trigger with sliding window type. Lateness is not specified so default is zero so all late data is not included in the window
+PCollection> avgSpeed = currentConditions // .apply(“TimeWindow”, Window.into(SlidingWindows// .of(Duration.standardMinutes(5)) .every(Duration.standardSeconds(60))))
+
+Trigger 1 minute before watermark, at watermark, and at the late event up to 30 minutes after each batch of N (N=1)
+PCollection> scores = input .apply(Window.into(FixedWindows.of(Minutes(2)) .triggering(AfterWatermark() .withEarlyFirings(AtPeriod(Minutes(1))) .withLateFirings(AtCount(1)) .withAllowedLateness(Minutes(30) )
+
+Session window. Gap duration of 2 minutes so any data that is not idle for 2 minutes is grouped into same window
+PCollection> scores = input .apply(Window.into(Sessions.withGapDuration(Minutes(2)) .triggering(AfterWatermark() .withEarlyFirings(AtPeriod(Minutes(1))) .apply(Sum.integersPerKey());
+
+
+------------------------------------------------------------
+
+
+How to update a pipeline - i.e. show to redirect data to a new pipeline without losing any in the process
+1) Update the job - create a new job with the same ID
+2) Map old to new job transforms using transform mapping
+3) After the compatibility check, transfer the buffered data to the new job
+PCollection> scores = input .apply(Window.into(Sessions.withGapDuration(Minutes(2)) .triggering(AfterWatermark() .withEarlyFirings(AtPeriod(Minutes(1))) .apply(Sum.integersPerKey());
+
+
+------------------------------------------------------------
+
+
+# Troubleshooting
+PubSub permission denied -> gcloud auth application-default lopgin
+Dataflow workflow failed -> check Dataflow API is enabled
+
+Handling pipeline errors
+PubSub -> Dataflow -[good data]-> BQ , -[bad data]-> PubSub new PCollection to be recycled
+Use try-catch block to handle errors
+
+
+
 
