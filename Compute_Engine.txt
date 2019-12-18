@@ -1,0 +1,8 @@
+
+Google Compute Engine (GCE)
+
+Backing up using snapshots
+https://cloud.google.com/compute/docs/disks/restore-and-delete-snapshots
+Existing VM disk -> create snapshot -> create VM instance boot disk -> create a new persistent disk when required
+Snapshots only hold information about changes to the VM instance (kind of like Git versions) so when you delete old snapshots, information that the subsequent snapshots need to create a boot disk gets transfered to the next latest snapshot
+
