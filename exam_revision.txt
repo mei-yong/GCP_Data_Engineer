@@ -8,6 +8,7 @@ https://cloud.google.com/certification/practice-exam/data-engineer
 https://cloud.google.com/certification/practice-exam/cloud-developer
 
 [Not free]
+https://www.coursera.org/learn/preparing-cloud-professional-data-engineer-exam/
 https://www.whizlabs.com/google-cloud-certified-professional-data-engineer/
 https://linuxacademy.com/course/google-cloud-data-engineer/
 https://www.udemy.com/course/google-cloud-certified-professional-data-engineer-practice-exams/
