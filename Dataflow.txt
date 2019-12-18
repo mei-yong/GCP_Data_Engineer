@@ -23,14 +23,19 @@ https://cloud.google.com/blog/products/gcp/guide-to-common-cloud-dataflow-use-ca
 
 
 Use Dataflow for:
-Use cases that require streaming data pipelines or pipelines that require both batch & stream
-E.g. credit card fraud monitoring - need streaming new data in real-time but also needs historical batch data for training ML models to detect fraud
+Use cases that require streaming data pipelines or pipelines that require both batch & stream.
+And you want to maintain state - i.e. only perform an action if there are x number of messages about aq particular topic in the last 5 minutes - otherwise, use Cloud Functions
+Your streaming input message bus service does not handle ordering or duplicates - Dataflow will perform exactly once aggregations
+* real-time recommendations (e.g. person always does y after x so show them an ad)
+* fraud detection (e.g. person tests if the credit card works at a gas station before using it for real somewhere else) - need streaming new data in real-time but also needs historical batch data for training ML models to detect fraud
+* gaming events (e.g. multi-user games, who are bots? can use the speed at which actions are performed and if too quick for humans)
+* finance back office events (e.g. live tracking of a signature being written because it's easy to just copy paste a signature but not the movement)
 
 Don't use Dataflow if:
 You only need batch (and current processes uses Hadoop Spark, Hive, Pig)
 You want to have iterative processing and notebooks
 You want to use ML with Spark ML
-You want to have a hands-on/DevOps approach to operations (not serverless)
+You want to have a hands-on/DevOps approach to operations (not serverless) - i.e. control over exactly what kind and how many nodes/clusters
 
 Integration
 Native - PubSub, BQ, ML Engine
