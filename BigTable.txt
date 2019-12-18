@@ -14,3 +14,12 @@ Reference: More detail into time series data schema design
 https://cloud.google.com/bigtable/docs/schema-design-time-series
 
 
+Reference: Modifying a BigTable instance
+https://cloud.google.com/bigtable/docs/modifying-instance
+Number of nodes
+Number of clusters
+Application profiles - including replication settings
+Labels - providing metadata
+Development -> Production instance
+
+
