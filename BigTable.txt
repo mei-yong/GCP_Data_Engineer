@@ -1,0 +1,16 @@
+
+BigTable
+
+Reference: Schema Design
+https://cloud.google.com/bigtable/docs/schema-design
+
+Rows are sorted lexicographically by row key - so if your key includes a timestamp, reverse it so that the latest entries appear at the top of the list
+All operations are atomic at the row level - so avoid designs that require atomicity across rows - if you need to make atomic updates or reads to an entity, try to keep all information for an entity in a single row
+It's better to have a few large tables than many small tables
+Store a maximum of 10 MB in a single cell and 100 MB in a single row
+For most use cases that involve logging/streaming data/timeseries data, a reasonable key would be 'entityid-reversedtimestamp'
+
+Reference: More detail into time series data schema design
+https://cloud.google.com/bigtable/docs/schema-design-time-series
+
+
