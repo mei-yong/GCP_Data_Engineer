@@ -1,0 +1,29 @@
+
+Cloud Transfer Service - migrate data from your existing cloud or online storage to GCP
+https://cloud.google.com/storage-transfer/docs/overview
+
+Transfer Appliance - migrate data from your on-prem store to GCP
+https://cloud.google.com/transfer-appliance/docs/2.0/
+
+BigQuery Data Transfer Service - migrate data from other Google non-GCP products & other data storage providers
+Google Ads, Campaign Manager, Google Ad Manager and YouTube. 
+Teradata, Amazon S3
+https://cloud.google.com/bigquery-transfer/docs/all-how-to
+
+Dedicated Interconnect - connect your on-prem network to your GCP network - 10Gbps-100Gpbs + 99.9 or 99.99 SLAs
+GCP components <-> Cloud Router <-> Google Peering Edge <-> On-prem router <-> On-prem components
+https://cloud.google.com/interconnect/docs/concepts/dedicated-overview
+
+Partner Interconnect - same as Dedicated Interconnect but 50Mbps-50Gpbs and no guaranteed SLAs with Google (possible depending on your service provided) 
+https://cloud.google.com/interconnect/docs/how-to/choose-type
+
+
+
+
+
+
+
+
+
+
+
