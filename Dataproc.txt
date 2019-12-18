@@ -1,0 +1,8 @@
+
+Dataproc
+
+If you have very critical jobs, you can specify a High Availability cluster upon cluster creation
+Instead of the default 1 master node, you get 3 master nodes
+https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/high-availability
+
+
