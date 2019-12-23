@@ -107,8 +107,7 @@ Worker - specifically for service accounts only
 
 ------------------------------------------------------------
 
-
-Example Syntax to run a pipeline
+Google Shell Example 1
 
 Traffic data -> PubSub Topic: sandiego -> Subscription pulls messages into Dataflow -> Dataflow calculates average speed -> output to BigQuery
 
@@ -131,6 +130,34 @@ cd ~/url
 # Shut down pipeline
 * Drain - finish processing buffered jobs before shutting down
 * Cancel - full stop and cancels existing buffering jobs immediately
+
+
+Google Shell + Console Example 2
+
+# Create a BQ dataset (as the data sink)
+bq mk taxirides
+
+# Create a BQ table
+bq mk \
+--time_partitioning_field timestamp \
+--schema ride_id:string,point_idx:integer,latitude:float,longitude:float,\
+timestamp:timestamp,meter_reading:float,meter_increment:float,ride_status:string,\
+passenger_count:integer -t taxirides.realtime
+
+# Create a GCS bucket (as a temporary location for Dataflow processing files)
+export BUCKET_NAME=projectID-my-bucket
+gsutil mb gs://$BUCKET_NAME/
+
+# Create Dataflow pipeline
+Navigation menu > Dataflow > Create job from template
+Job name = dataflow_lab
+Cloud Dataflow Template = Cloud Pub/Sub Topic to BigQuery template
+Cloud Pub/Sub input topic = projects/pubsub-public-data/topics/taxirides-realtime
+BQ output table = $PROJECT:taxirides.realtime
+Temporary location = gs://$BUCKET_NAME/temp
+
+# Query the BQ table to see the realtime results streamed into BQ
+SELECT * FROM `PROJECT.taxirides.realtime` LIMIT 1000
 
 
 ------------------------------------------------------------
