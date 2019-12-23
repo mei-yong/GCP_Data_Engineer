@@ -1,0 +1,45 @@
+
+PubSub
+
+Reference: How PubSub works - i.e. many publishers - 1 topic - many subscriptions - many subscribers
+https://cloud.google.com/pubsub/architecture
+
+Reference: Ordering - and how PubSub relies on Dataflow for this - whereas Kafka has built in ordering within partitions
+https://cloud.google.com/pubsub/docs/ordering
+
+Reference: The differences, pros, cons of PubSub vs Apache Kafka
+https://www.jesse-anderson.com/2016/07/apache-kafka-and-google-cloud-pubsub/
+
+
+Use PubSub if you need:
+Exponential growth in users globally
+A more managed service - i.e. you don't have to configure replication & backups, encryption
+Both topic push and pull - Kafka only does pull using poll() call - you'd want push for pipelines with lower latency because then the messenger isn't waiting for a pull request before pushing messages through
+At least once delivery guarantee
+Partitioning
+
+Do not use PubSub if you need:
+Ordering guarantees done by one solution - PubSub relies on Dataflow to handle ordering when given a message ID + order ID + timestamp 
+An on-prem solution
+A longer/larger data storage limit - PubSub only keeps for 7 days, Kafka has no limit but users usually opt for 4-21 days and use log compaction to save space
+More control over replication & backups - Kafka uses MirrorMaker
+
+
+An example use case
+Users can get an activity log report whenever they click a button. The button links to an API but it keeps getting timed out at peak times. Instead of Button -> API -> report returned…
+Button -> PubSub message with specs like userID, daterange, etc -> activity log topic -> API is subscriber -> API generates reports asynchronously (API only lets one at a time happen) -> API publishes the log to a temporary link -> email said link to the user for them to access. This way, you’re not bottlenecked at the API.
+
+
+Reference: FAQs
+https://cloud.google.com/pubsub/docs/faq#duplicates
+Why are there too many duplicate messages?
+Pub/Sub guarantees at-least-once message delivery, which means that occasional duplicates are to be expected. However, a high rate of duplicates may indicate that the client is not acknowledging messages within the configured ack_deadline_seconds, and Pub/Sub is retrying the message delivery. 
+
+Reference: PubsubMessage - REST structure
+https://cloud.google.com/pubsub/docs/reference/rest/v1/PubsubMessage
+
+
+
+
+
+
