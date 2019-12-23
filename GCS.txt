@@ -8,9 +8,77 @@ Regional Cloud Storage is cheaper than BQ storage
 Reference: Uploading objects
 https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
 
+--------------------------------------------------------------
+
+References
+https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-python
+https://cloud.google.com/storage/docs/downloading-objects#storage-download-object-python
+https://cloud.google.com/storage/docs/how-to#working-with-objects
+
 
 Reference: Using Python to read & write to GCS
 https://cloud.google.com/appengine/docs/standard/python/googlecloudstorageclient/read-write-to-cloud-storage
+
+##### In Cloud Shell #####
+
+# Install GCS Python library
+pip install --upgrade google-cloud-storage
+
+# Set up a service account
+gcloud iam service-accounts create <service_account_name>
+
+# Grant permissions to the service account
+gcloud projects add-iam-policy-binding <PROJECT_ID> --member "serviceAccount:<service_account_name>@<PROJECT_ID>.iam.gserviceaccount.com --role "roles/owner"
+
+# Generate the key file
+gcloud iam service-accounts keys create <key_file_name>.json --iam-account <service_account_name>@<PROJECT_ID>.iam.gserviceaccount.com
+
+
+# Provide authentication credentials to your application code by setting the environment variable GOOGLE_APPLICATION_CREDENTIALS. Replace [PATH] with the file path of the JSON file that contains your service account key, and [FILE_NAME] with the filename. This variable only applies to your current shell session, so if you open a new session, set the variable again.
+Windows Powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS="[PATH]"
+Windows Command prompt
+set GOOGLE_APPLICATION_CREDENTIALS=[PATH]
+
+
+
+##### In Python File #####
+
+# Import library
+from google.cloud import storage
+
+# Instantiate a client
+storage_client = storage.Client()
+
+# Get file from GCS bucket
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    '''Downloads a blob from the bucket'''
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+
+    blob.download_to_filename(destination_file_name)
+
+    print('Blob {} downloaded to {}.'.format(
+        source_blob_name,
+        destination_file_name))
+
+		
+# Upload file to GCS bucket
+def upload_blob(bucket_name, source_file_name, destination_blob_name):
+    """Uploads a file to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_filename(source_file_name)
+
+    print('File {} uploaded to {}.'.format(
+        source_file_name,
+        destination_blob_name))
+
+
+
 
 
 
