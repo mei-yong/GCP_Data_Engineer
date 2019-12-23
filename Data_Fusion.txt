@@ -1,0 +1,86 @@
+
+Data Fusion
+
+* ETL pipelines from various sources to sinks
+* Uses Wrangler
+* Runs on clusters
+
+------------------------------------------------------------------------
+
+Tutorial - Qwiklabs
+
+# Create a Data Fusion instance
+Navigation Menu > Data Fusion
+Create an instance. Give it a name and leave the rest of the fields as defaults. Takes about 15 mins to create
+On the Instance details page, copy the Service Account
+
+# Add the Data Fusion service account as a new member to the IAM settings
+Navigation Menu > IAM & admin > IAM
+Add new member > Paste the Service Account
+Select the new member role > Cloud Data Fusion API Service Agent
+
+# Create a GCS bucket for Fusion to read from
+export BUCKET=$DEVSHELL_PROJECT_ID
+gsutil mb gs://$BUCKET
+gsutil cp gs://cloud-training/OCBL017/ny-taxi-2018-sample.csv gs://$BUCKET
+
+# Create a GCS bucket for temporary storage items that Fusion will create
+gsutil mb gs://$BUCKET-temp
+
+# Data prep & cleanse is done using Wrangler
+
+# Set the GSC bucket to be used by Fusion
+Google Cloud Storage > Cloud Storage Default > Select the bucket > Select the CSV
+
+# Data cleanse
+Parse > CSV > Set first row as header
+Delete the body column
+Change data type of trip_distance & total_amount to float
+Remove negative trip distances from trip_distance > Select Filter > Customer condition > >0.0
+
+# Data prep - Fusion's pipeline is built into an Apache Spark or MapReduce program that executes transformations on an ephemeral Dataproc cluster
+Upper-right side of Fusion console > Create a Pipeline > Batch pipeline > Wrangler box > Properties
+Delete the extra column
+
+# Create a BQ dataset and table to link with Fusion
+After copying or importing the dataset > More > Query Settings > Set a destination table for query results
+Table name = zone_id_mapping
+
+# Check the BQ table
+SELECT * FROM `projectid.dataset.table` LIMIT 10
+
+# Link the BQ dataset with Fusion
+Source > BigQuery > Properties
+Reference Name = zone_mapping
+Dataset = BQ_dataset
+Table = BQ_table
+Temporary Bucket Name = $PROJECT-temp
+Get schema > Apply the BQ Source node
+
+# Join data sources
+Plugin Palette > Analytics > Joiner > Drag a connection arrow between the data sources and the joiner node > Joiner Node Properties > Expand All
+Configure the Join node like doing SQL. Select Generate Schema to preview the output
+
+# Set another BQ dataset as the sink/data store
+Plugin Palette > Sink > BigQuery
+Connect the Joiner node to the BQ sink node > Sink node Properties
+Reference name = output_table
+Dataset = trips
+Table = trips_pickup_name
+
+# Save the pipeline in the top right corner of the console
+# Deploy the pipeline
+# Run the pipeline - goes from Provisioning, Starting, Running, Deprovisioning, Succeeded
+
+# Check the final sink/storage BQ table
+SELECT * FROM `projectid.dataset.table` LIMIT 10
+
+# Could connect BQ to Data Studio to visualise it
+
+
+
+
+
+
+
+
