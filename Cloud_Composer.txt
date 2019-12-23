@@ -35,6 +35,18 @@ KubernetesPodOperator - handles cluster resourcing - https://cloud.google.com/co
 
 --------------------------------------------------------------
 
+DAG
+The DAG is written in Python. You can keep multple DAGs in the DAG folder
+Versatile because many services offer APIs that can be integrated into the Python operators in the DAG
+
+The Python file contents & steps:
+1)	Create DAG object
+2)	Provides parameters that define the scheduling interval
+3)	Perform the operations
+4)	Dependencies that determine which operations must complete before others can begin
+
+--------------------------------------------------------------
+
 # Create GCS bucket
 gsutil mb -l <region> <gs://bucket_filepath>
 
