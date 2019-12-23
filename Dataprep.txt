@@ -1,0 +1,20 @@
+
+Dataprep
+
+A Google Trifacta partnership
+Similar to Alteryx
+Create 'Flows' and 'Recipes' to indicate where data comes from, what transformations it undergoes, and where it outputs to
+Only works with GCS, BQ - REMEMBER: Bucket names need to be globally unique
+
+You can view the data in little graphs at the top of each column
+At the top of each column, you can also see number of categories or numerical range
+Also indicates data mismatch at the top (e.g. if the datatype is state but the value is US which is a country, this gets flagged up)
+You can click on the bars in the top of the column to filter by a particular value and add that as a step in the Recipe
+You can find more transformations via the Search bar at the top. You can input full Wrangle transformation syntax and it'll detect it correctly and put it in the correct recipe boxes.
+
+Reference: Jobs Page
+https://cloud.google.com/dataprep/docs/html/Jobs-Page_57344842
+
+
+
+
