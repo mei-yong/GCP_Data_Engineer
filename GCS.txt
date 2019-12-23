@@ -1,0 +1,8 @@
+
+Google Cloud Storage
+
+Is Hadoop Compatible File System (HCFS) - faster than HDFS
+Regional Cloud Storage is cheaper than BQ storage
+
+https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
+
