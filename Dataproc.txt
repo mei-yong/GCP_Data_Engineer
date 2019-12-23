@@ -62,5 +62,26 @@ Are you using private IPs that require the flow to take an extra step interfacin
 HDFS is better if you want:
 To perform appends and truncates
 
+--------------------------------------------------------------
+
+Example: Submit a Spark job to Dataproc cluster using Google Shell
+
+# Create a cluster with default settings
+gcloud dataproc clusters create example-cluster
+
+# Submit a Spark job
+# After specifying the jar file containing the job's code, include parameters that need to be passed to the job. In this case, it's the number of tasks which is 1000
+https://cloud.google.com/sdk/gcloud/reference/dataproc/jobs/submit/spark
+
+gcloud dataproc jobs submit spark \
+	--cluster example-cluster \
+	--class org.apache.spark.examples.SparkPi \
+	--jars file:///usr/lib/spark/examples/jars/spark-examples.jar -- 1000
+
+# Update the number of workers in the cluster
+gcloud dataproc clusters update example-cluster --num-workers 4
+gcloud dataproc clusters update example-cluster --num-workers 2
+
+
 
 
