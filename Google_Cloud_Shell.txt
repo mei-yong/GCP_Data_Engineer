@@ -3,7 +3,7 @@ References
 https://cloud.google.com/sdk/gcloud/
 https://cloud.google.com/compute/docs/instances/connecting-to-instance
 
-#Cloud Shell is a Debian-based virtual machine loaded with all the development tools you'll need (gcloud, git, and others) and offers a persistent 5GB home directory.
+# Cloud Shell is a Debian-based VM with dev tools like gcloud, git, and others and offers a persistent 5GB home directory.
 
 # See default VM values
 gcloud compute instances create –help
@@ -29,6 +29,7 @@ apt-get update
 
 # Set environment variables
 export PROJECT_ID=project_id
+export PROJECT_ID=$DEVSHELL_PROJECT_ID
 
 # Check variables
 echo $PROJECT_ID
@@ -60,6 +61,44 @@ vi <filepath>
 ESC + :wq
 
 
+# Setup Python environment
+python3 --version
+pip3 --version
+https://pip.pypa.io/en/stable/installing/
+sudo pip3 install -U pip
+sudo pip3 install --upgrade virtualenv
+virtualenv -p python3.7 my_env
+source my_env/bin/activate
+
+------------------------------------------------------------------
+
+Dataflow Example
+
+# Activate the virtual environment
+source my_env/bin/activate
+
+# Install Apache Beam
+pip install apache-beam[gcp]
+
+# Run the Python file - by default, will use DirectRunner (could specify DataflowRunner in the Python file
+python -m apache_beam.examples.wordcount --output OUTPUT_FILE
+
+# Check the output file
+ls
+cat $FILE
+
+# Run the pipeline remotely
+
+BUCKET=gs://$BUCKET_NAME
+
+python -m apache_beam.examples.wordcount \
+	--project $DEVSHELL_PROJECT_ID \
+	--runner DataflowRunner \
+	--staging_location $BUCKET/staging \
+	--temp_location $BUCKET/temp \
+	--output $BUCKET/results/output
+
+# Check outputs in the console by navigating to Dataflow and/or GCS
 
 
 
