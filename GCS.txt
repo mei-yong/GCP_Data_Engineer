@@ -1,8 +1,12 @@
 
 Google Cloud Storage
 
-Is Hadoop Compatible File System (HCFS) - faster than HDFS
+Object storage - anything from CSV to JSON to images to audio to video files.
+Store objects in buckets. Buckets are associated with a project. You can group projects under an organisation.
+Bucket names must be globally unique - common practice is to name it as 'project_id-bucket_descriptor' since project ID is also globally unique.
+Is a Hadoop Compatible File System (HCFS) - but is faster than HDFS
 Regional Cloud Storage is cheaper than BQ storage
+
 
 Storage Classes + Location
 https://cloud.google.com/storage/docs/storage-classes
@@ -20,6 +24,7 @@ https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-py
 
 Shell scripts
 
+Reference: All key shell scripts
 https://cloud.google.com/storage/docs/how-to
 
 # Set bucket name variable using the default project ID detected by Shell
@@ -40,6 +45,9 @@ gsutil mb -p [PROJECT_NAME] -c [STORAGE_CLASS] -l [BUCKET_LOCATION] -b on gs://[
 # List all buckets in a project
 gsutil ls
 
+# List all objects in a bucket
+gsutil ls -r gs://[BUCKET_NAME]/**
+
 # Get bucket size in bytes
 # Note: The gsutil du command calculates space usage by making object listing requests, which can take a long time for large buckets. If the number of objects in your bucket is hundreds of thousands or more, use Stackdriver instead.
 gsutil du -s gs://$BUCKET_NAME/
@@ -57,6 +65,14 @@ gsutil setmeta -h "[METADATA_KEY]:[METADATA_VALUE]" gs://[BUCKET_NAME]/[OBJECT_N
 [METADATA_VALUE] is the value for the metadata you want to set. For example, image/png.
 [BUCKET_NAME] is the name of the bucket containing the object whose metadata you want to edit. For example, my-bucket.
 [OBJECT_NAME] is the name of the object whose metadata you want to edit. For example, pets/dog.png.
+
+# Upload an object - local -> GCS
+gsutil cp [LOCAL_OBJECT_LOCATION] gs://[DESTINATION_BUCKET_NAME]/
+e.g. gsutil cp Desktop/data/cat.png gs://my-project-id/data/
+
+# Download an object - GCS -> local
+gsutil cp gs://[BUCKET_NAME]/[OBJECT_NAME] [SAVE_TO_LOCATION]
+e.g. gsutil cp gs://my-project-id/data/cat.png Desktop/data
 
 # Copy all objects from one bucket to another
 # the -r option recursively copies all your objects
@@ -78,6 +94,33 @@ gsutil rm -a gs://[SOURCE_BUCKET]/**
 # Delete the whole bucket and all its objects
 gsutil rm -r gs://[SOURCE_BUCKET]
 
+# View the Cloud IAM policy for a bucket
+gsutil iam get gs://[BUCKET_NAME]
+
+# Add a member to a bucket-level policy
+gsutil iam ch [MEMBER_TYPE]:[MEMBER_NAME]:[IAM_ROLE] gs://[BUCKET_NAME]
+
+# Remove a member from a bucket-level policy
+gsutil iam ch -d [MEMBER_TYPE]:[MEMBER_NAME] gs://[BUCKET_NAME]
+
+[MEMBER_TYPE] is the type of member to which you are granting bucket access. For example, user.
+[MEMBER_NAME] is the name of the member to which you are granting bucket access. For example, jane@gmail.com.
+[IAM_ROLE] is the IAM role you are granting to the member. For example, roles/storage.objectCreator.
+[BUCKET_NAME] is the name of the bucket you are granting the member access to. For example, my-bucket.
+
+
+Reference: IAM
+https://cloud.google.com/storage/docs/access-control/using-iam-permissions
+
+Reference: Composite Objects
+https://cloud.google.com/storage/docs/composite-objects
+https://cloud.google.com/storage/docs/composing-objects
+
+Reference: Resumable Uploads
+https://cloud.google.com/storage/docs/performing-resumable-uploads
+
+Reference: Streaming Transfers
+https://cloud.google.com/storage/docs/streaming
 
 
 --------------------------------------------------------------
