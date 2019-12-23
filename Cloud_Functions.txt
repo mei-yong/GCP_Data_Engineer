@@ -1,0 +1,28 @@
+
+Cloud Functions
+
+Serverless, stateless, execution environment for app code
+Triggered by an event – could be GCS, Pub/Sub, HTTP web events, etc
+1)	Authentication
+2)	Send watch request – sync notification event
+3)	Add, update, remove object
+4)	Notification
+5)	Waits for acknowledgement
+6)	If app unreachable after 20 seconds, notification retired
+7)	If app reachable but no acknowledgement, then exponential backoff 30 seconds after fail up to max 90 minutes for up to 7 days
+
+You can specify requirements so that common libraries are loaded into the environment whenever the Function is triggered
+Often Functions are used for ETL
+Can trigger periodic events using Cloud Scheduler. For data processing, there’s Dataproc Workflow Templates and Cloud Composer
+Can monitor functions via Stackdriver
+Functions are written in Python, Node.js or Go
+
+
+For Python
+https://cloud.google.com/functions/docs/writing/#functions-writing-file-structuring-python
+Main.py – definitions of one or more Cloud Functions
+Requirements.txt – used by the Py package manager to incorporate dependencies into runtime environment. For whatever is not available through pip, package these and supply them to the Cloud Functions as well
+Cloud Function code can be deployed to the service via Console, gcloud CLI, local computer
+The name of the function is defined at deployment and must be unique in the region. By default, the name of the function is also the entry point into the source code – i.e. foo function will execute foo() in the source code – can change using –entry-point flag at deploy time
+
+
