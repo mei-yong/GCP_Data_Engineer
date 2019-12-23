@@ -1,0 +1,225 @@
+
+ML Engine
+https://cloud.google.com/ml-engine/docs/managing-models-jobs
+
+----------------------------------------------------------------------------
+
+Tensor Processing Units (TPUs)
+https://cloud.google.com/tpu/docs/
+
+----------------------------------------------------------------------------
+
+Tensorflow
+
+Dropout – regularisation of DNNs to reduce overfitting
+http://laid.delanover.com/dropout-explained-and-implementation-in-tensorflow/
+
+Threading – asynchronous processing – like parallel processing. In TF, it’s called queueing but in tech docs, you’ll see the feed_dict method like so: sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+https://adventuresinmachinelearning.com/introduction-tensorflow-queuing/
+
+Serialisation – transforming in-memory objects into files for storage – e.g. cleansed data output to a CSV to be read by the next step in the process
+https://martin-thoma.com/data-serialization/
+
+Dimension reduction – transform wide dataset with lots of features into less but still fully representative features
+https://www.analyticsvidhya.com/blog/2018/08/dimensionality-reduction-techniques-python/
+
+When retraining a model where the user’s preferences are likely to change frequently, retrain the model using the NEW data and test using the OLD data
+
+DNNs work better with dense features (i.e. not one-hot encoded features)
+You could use a combination of both - DNNLinearCombinedClassifier
+
+Overfitting
+https://towardsdatascience.com/deep-learning-3-more-on-cnns-handling-overfitting-2bd5d99abe5d
+https://developers.google.com/machine-learning/crash-course/regularization-for-simplicity/l2-regularization
+
+DNN Best Practice
+https://developers.google.com/machine-learning/crash-course/training-neural-networks/best-practices
+
+Feature Crosses - especially for linear models like SVC
+https://developers.google.com/machine-learning/crash-course/feature-crosses/video-lecture
+
+
+
+----------------------------------------------------------------------------
+
+
+Example: Train a ML model using Tensorflow & AI platform
+
+A model version is an instance of a machine learning solution stored in the AI Platform model service
+AI Platform offers training jobs and batch prediction jobs
+
+
+# Update the packages
+sudo apt-get update
+
+# Create a virtual Python environment
+sudo apt-get install virtualenv
+virtualenv -p python3 venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Clone the required Github repo
+https://github.com/GoogleCloudPlatform/cloudml-samples
+https://github.com/GoogleCloudPlatform/cloudml-samples/tree/master/census/estimator
+git clone https://github.com/GoogleCloudPlatform/cloudml-samples.git
+
+# Navigate to the estimator folder
+cd cloudml-samples/census/estimator
+
+
+
+# START BY TESTING LOCALLY IN A VM
+
+# Import data to local file directory to test - in this example, it's from some other GCS bucket
+mkdir data
+gsutil -m cp gs://cloud-samples-data/ml-engine/census/data/* data/
+
+# Set shell variables to the local file paths
+export TRAIN_DATA=$(pwd)/data/adult.data.csv
+export EVAL_DATA=$(pwd)/data/adult.test.csv
+
+# Take a look at the first few rows of the CSV
+head data/adult.data.csv
+
+# Install dependencies
+pip install -r ../requirements.txt
+
+# Contents of requirements.txt
+google-cloud-dataflow
+apache-beam[gcp]
+tensorflow>=1.13,<2
+tensorboard>=1.13,<2
+tensorflow-model-analysis>=0.13.2,<2
+
+# Check that tensorflow was installed ok
+python -c "import tensorflow as tf; print('TensorFlow version {} is installed.'.format(tf.__version__))"
+
+# Specify an output directory & set variable
+export MODEL_DIR=output
+
+# Run the training job locally
+gloud ai-platform local train \
+--module-name trainer.task \
+--package-path trainer/ \
+--job-dir $MODEL_DIR \
+-- \
+--train-files $TRAIN_DATA \
+--eval-files $EVAL_DATA \
+--train-steps 1000 \
+--eval-steps 100
+
+# Use tensorboard to monitor
+https://www.tensorflow.org/tensorboard/migrate
+tensorboard --logdir=$MODEL_DIR --port=8080
+# Exit tensorboard
+Ctrl+C
+
+# The output/export/census directory holds the model exported as a result of running training locally. List that directory to see the generated timestamp subdirectory & copy it
+ls output/export/census/
+
+# Test out the trained model
+gcloud ai-platform local predict \
+--model-dir output/export/census/$TIMESTAMP \
+--json-instances ../test.json
+
+# Note: If you get RuntimeError: Bad magic number in .pyc file... and re-run the above command again
+sudo rm -rf /google/google-cloud-sdk/lib/googlecloudsdk/command_lib/ml_engine/*.pyc 
+
+# Contents of test.json
+{"age": 25, "workclass": " Private", "education": " 11th", "education_num": 7, "marital_status": " Never-married", "occupation": " Machine-op-inspct", "relationship": " Own-child", "race": " Black", "gender": " Male", "capital_gain": 0, "capital_loss": 0, "hours_per_week": 40, "native_country": " United-States"}
+
+
+
+# THEN LATER PERFORM TRAINING ON CLOUD
+
+# Set variables
+PROJECT_ID=$(gcloud config list project --format "value(core.project)")
+BUCKET_NAME=${PROJECT_ID}-mlengine
+REGION=us-central1
+echo $BUCKET_NAME
+
+# Create a new GCS bucket
+gsutil mb -l $REGION gs://$BUCKET_NAME
+
+# Import to the new GCS bucket
+https://cloud.google.com/storage/docs/gsutil/commands/cp
+gsutil cp -r data gs://$BUCKET_NAME/data
+
+# Set shell variables to the GCS file paths
+TRAIN_DATA=gs://$BUCKET_NAME/data/adult.data.csv
+EVAL_DATA=gs://$BUCKET_NAME/data/adult.test.csv
+
+# Copy the test.json to the GCS bucket & set to a variable
+gsutil cp ../test.json gs://$BUCKET_NAME/data/test.json
+TEST_JSON=gs://$BUCKET_NAME/data/test.json
+
+
+# CLOUD TRAINING WITH ONLY 1 VM INSTANCE
+
+# Name the initial training run. Use the default BASIC scale tier to run a single-instance training job. The initial job request can take a few minutes to start, but subsequent jobs run more quickly. This enables quick iteration as you develop and validate your training job
+JOB_NAME=census_single_1
+
+# Specify a directory for output generated by AI Platform by setting an OUTPUT_PATH variable to include when requesting training and prediction jobs. The OUTPUT_PATH represents the fully qualified Cloud Storage location for model checkpoints, summaries, and exports. You can use the BUCKET_NAME variable you defined in a previous step. It's a good practice to use the job name as the output directory
+OUTPUT_PATH=gs://$BUCKET_NAME/$JOB_NAME
+
+# Submit a training job in the cloud that uses a single process. Set the --verbosity tag to DEBUG so that you can inspect the full logging output and retrieve accuracy, loss, and other metrics
+gcloud ai-platform jobs submit training $JOB_NAME \
+    --job-dir $OUTPUT_PATH \
+    --runtime-version 1.14 \
+    --python-version 3.5 \
+    --module-name trainer.task \
+    --package-path trainer/ \
+    --region $REGION \
+    -- \
+    --train-files $TRAIN_DATA \
+    --eval-files $EVAL_DATA \
+    --train-steps 1000 \
+    --eval-steps 100 \
+    --verbosity DEBUG
+	
+# Monitor training progress with cmd below OR via Console: AI Platform > Jobs
+# Can also open tensorboard to take a look at progress - to exit Ctrl+C
+gcloud ai-platform jobs stream-logs $JOB_NAME
+tensorboard --logdir=$OUTPUT_PATH --port=8080
+
+# Take a look at the sample outputs that were stored in the GCS bucket specified earlier
+gsutil ls -r $OUTPUT_PATH 
+
+
+
+# DEPLOY THE MODEL ON AI PLATFORM
+
+# Set name of the model & create it
+MODEL_NAME=census
+gcloud ai-platform models create $MODEL_NAME --regions=$REGION
+
+# Look for the trained model timestamp & copy it
+gsutil ls -r $OUTPUT_PATH/export
+
+# Set the model binaries
+MODEL_BINARIES=$OUTPUT_PATH/export/census/$TIMESTAMP/
+
+# Deploy the trained model
+gcloud ai-platform versions create v1 \
+--model $MODEL_NAME \
+--origin $MODEL_BINARIES \
+--runtime-version 1.14 \
+--python-version 3.5
+
+# Check the model exists on AI Platform now
+gcloud ai-platform models list
+
+# Test by sending an online prediction request to the trained model now hosted on AI Platform
+gcloud ai-platform predict \
+--model $MODEL_NAME \
+--version v1 \
+--json-instances ../test.json
+
+
+
+
+
+
+
+
