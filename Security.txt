@@ -19,6 +19,10 @@ https://cloud.google.com/bigquery/docs/access-control
 
 
 
+-----------------------------------------------------------
+
+
+
 Encryption
 https://cloud.google.com/storage/docs/encryption/
 https://cloud.google.com/kms/docs/
@@ -38,4 +42,22 @@ Stored within KMS
 Not supported by Cloud SQL -> GCS, Dataflow
 You can have a bucket encrypted using customer managed keys but pick particular objects in the bucket to encrypt using customer supplied keys
 
+
+
+-----------------------------------------------------------
+
+
+
+Create a firewall rule using CLI
+
+gcloud compute \
+--project=$PROJECT_ID \
+firewall-rules create allow-custom \
+--direction=INGRESS \
+--priority=1000 \
+--network=default \
+--action=ALLOW \
+--rules=tcp:9870,tcp:8088,tcp:8080 \
+--source-ranges=$BROWSER_IP/32 \
+--target-tags=customaccess
 

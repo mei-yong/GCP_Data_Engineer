@@ -1,0 +1,57 @@
+
+Kubernetes Engine
+
+Example: Spin up a Kubernetes cluster in CLI
+
+# Set default zone
+gcloud config set compute/zone $ZONE
+
+# Create a cluster
+# Note: clusters consist of at least one master machine and multiple worker machines called nodes. Nodes are GCE VM instances that run Kubernetes processes necessary to make them part of the cluster.
+gcloud container clusters create $CLUSTER_NAME
+
+NAME       LOCATION       MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION    NUM_NODES  STATUS
+cluster-a  us-central1-a  1.13.11-gke.14  35.193.189.202  n1-standard-1  1.13.11-gke.14  3          RUNNING
+
+# Authenticate the cluster
+gcloud container clusters get-credentials $CLUSTER_NAME
+
+
+# Deployment object - deploy stateless apps like web servers
+# Service object - defines rules and load balancing for access the app from the internet
+
+# Create a new deployment using the app container image
+kubectl create deployment hello-server --image=gcr.io/google-samples/hello-app:1.0
+
+# Create a new service to expose the app to external traffic
+kubectl expose deployment hello-server --type=LoadBalancer --port 8080
+
+# Inspect the service
+kubectl get service
+
+NAME           TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+hello-server   LoadBalancer   10.19.244.34   <pending>     8080:32454/TCP   42s
+kubernetes     ClusterIP      10.19.240.1    <none>        443/TCP          7m51s
+
+# Wait for the external IP to be generated
+
+NAME           TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)          AGE
+hello-server   LoadBalancer   10.19.244.34   34.66.198.144   8080:32454/TCP   85s
+kubernetes     ClusterIP      10.19.240.1    <none>          443/TCP          8m34s
+
+# View the app in the web browser
+http://34.66.198.144:8080
+
+# Delete the cluster
+gcloud container clusters delete $CLUSTER_NAME
+
+
+
+
+
+
+
+
+
+
+
