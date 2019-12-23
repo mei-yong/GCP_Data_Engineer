@@ -1,0 +1,67 @@
+
+References
+https://cloud.google.com/sdk/gcloud/
+https://cloud.google.com/compute/docs/instances/connecting-to-instance
+
+#Cloud Shell is a Debian-based virtual machine loaded with all the development tools you'll need (gcloud, git, and others) and offers a persistent 5GB home directory.
+
+# See default VM values
+gcloud compute instances create –help
+
+# List the project ID
+gcloud config list project
+
+# Set default region or zone
+gcloud config set compute/zone $ZONE
+gcloud config set compute/region $REGION
+
+# Check current credentials
+gcloud auth list
+
+# Check what permissions you have
+gcloud projects get-iam-policy $PROJECT_ID
+
+# Access root using sudo
+sudo su -
+
+# Update OS
+apt-get update
+
+# Set environment variables
+export PROJECT_ID=project_id
+
+# Check variables
+echo $PROJECT_ID
+
+# gcloud help
+gcloud -h
+
+# Get more detailed help
+gcloud config --help OR gcloud help config
+# Exit detailed help
+q
+
+# View list of configurations in your environment
+gcloud config list
+
+# Check how other properties are set
+gcloud config list --all
+
+# View list of all components
+gcloud components list
+
+# Change current working directory
+cd $HOME
+
+# Open vi editor (like nano)
+vi <filepath>
+
+# Close vi editor
+ESC + :wq
+
+
+
+
+
+
+
