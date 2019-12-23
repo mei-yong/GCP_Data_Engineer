@@ -1,0 +1,10 @@
+
+Kubeflow
+
+Packages ML code for Kubernetes. Composing, deploying, managing E2E ML workflows. Makes code reusable and portable.
+UI – essentially a console
+Engine – schedule multi-step ML workflows
+SDK – define & manipulate pipelines and components
+Notebooks – interacting with the system using the SDK
+
+
