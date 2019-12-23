@@ -4,13 +4,87 @@ Google Cloud Storage
 Is Hadoop Compatible File System (HCFS) - faster than HDFS
 Regional Cloud Storage is cheaper than BQ storage
 
+Storage Classes + Location
+https://cloud.google.com/storage/docs/storage-classes
+Regional - updated whenever - lower latency than multi-regional if bucket is in same place as compute
+Multi-regional - updated whenever
+Nearline - expected to be updated once a month
+Coldline - expected to be updated once a year
+
 
 Reference: Uploading objects
 https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
 
+
 --------------------------------------------------------------
 
-References
+Shell scripts
+
+https://cloud.google.com/storage/docs/how-to
+
+# Set bucket name variable using the default project ID detected by Shell
+export BUCKET_NAME=$DEVSHELL_PROJECT_ID
+
+# Change default storage class
+gsutil defstorageclass set [STORAGE_CLASS] gs://[BUCKET_NAME]
+
+# Make a new bucket
+gsutil mb gs://$BUCKET_NAME/
+gsutil mb -p [PROJECT_NAME] -c [STORAGE_CLASS] -l [BUCKET_LOCATION] -b on gs://[BUCKET_NAME]/
+  
+-p: Specify the project with which your bucket will be associated. For example, my-project.
+-c: Specify the default storage class of your bucket. For example, NEARLINE.
+-l: Specify the location of your bucket. For example, US-EAST1.
+-b: Enable uniform bucket-level access for your bucket.
+
+# List all buckets in a project
+gsutil ls
+
+# Get bucket size in bytes
+# Note: The gsutil du command calculates space usage by making object listing requests, which can take a long time for large buckets. If the number of objects in your bucket is hundreds of thousands or more, use Stackdriver instead.
+gsutil du -s gs://$BUCKET_NAME/
+
+# Get bucket metadata
+gsutil ls -L -b gs://$BUCKET_NAME/
+
+# Get object metadata
+gsutil stat gs://[BUCKET_NAME]/[OBJECT_NAME]
+
+# Edit object metadata
+gsutil setmeta -h "[METADATA_KEY]:[METADATA_VALUE]" gs://[BUCKET_NAME]/[OBJECT_NAME]
+
+[METADATA_KEY] is the key for the metadata you want to set. For example, Content-Type.
+[METADATA_VALUE] is the value for the metadata you want to set. For example, image/png.
+[BUCKET_NAME] is the name of the bucket containing the object whose metadata you want to edit. For example, my-bucket.
+[OBJECT_NAME] is the name of the object whose metadata you want to edit. For example, pets/dog.png.
+
+# Copy all objects from one bucket to another
+# the -r option recursively copies all your objects
+# the * represents wildcard
+gsutil cp -r gs://[SOURCE_BUCKET]/* gs://[DESTINATION_BUCKET]
+
+# Rename a single object in a bucket
+gsutil mv gs://[BUCKET_NAME]/[OLD_OBJECT_NAME] gs://[BUCKET_NAME]/[NEW_OBJECT_NAME]
+
+# Copy a single object from one bucket to another
+gsutil cp gs://[SOURCE_BUCKET_NAME]/[SOURCE_OBJECT_NAME] gs://[DESTINATION_BUCKET_NAME]/[NAME_OF_COPY]
+
+# Move (and optionally rename) a single object from one bucket to another
+gsutil mv gs://[SOURCE_BUCKET_NAME]/[SOURCE_OBJECT_NAME] gs://[DESTINATION_BUCKET_NAME]/[DESTINATION_OBJECT_NAME]
+
+# Delete all objects in a bucket but not the bucket itself
+gsutil rm -a gs://[SOURCE_BUCKET]/**
+
+# Delete the whole bucket and all its objects
+gsutil rm -r gs://[SOURCE_BUCKET]
+
+
+
+--------------------------------------------------------------
+
+
+Using GCS with Python
+
 https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-python
 https://cloud.google.com/storage/docs/downloading-objects#storage-download-object-python
 https://cloud.google.com/storage/docs/how-to#working-with-objects
