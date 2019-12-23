@@ -1,10 +1,42 @@
 
 Google Compute Engine (GCE)
 
+
+Reference: Connect to Instance
+https://cloud.google.com/compute/docs/instances/connecting-to-instance
+
+
+Reference: Regions & Zones
+https://cloud.google.com/compute/docs/regions-zones/
+It's good to put bunches of resources in different regions so that if one of them fails, others are still ok
+Every resource in Compute Engine must be uniquely named across the project no matter if they're in different regions/zones
+
+Zonal
+VM instance <--> Persistent disk
+VM instance <--> Static IP address
+
+Regional
+Static external IP addresses
+
+Global resources
+Addresses - static external IP addresses
+Images (these can be shared across projects)
+Snapshots - Persistent disk snapshots (these can be shared across projects)
+VM instance templates (can be restricted to zones)
+Cloud Interconnects - a highly available connection from your on-premises network to Google's network. interconnect attachments, which run inside of this connection, are regional resources.
+VPC network - individual subnets are regional
+Firewalls
+Routes - manage how traffic is routed for a specific IP range
+Global operations
+
+
+
+
 Backing up using snapshots
 https://cloud.google.com/compute/docs/disks/restore-and-delete-snapshots
 Existing VM disk -> create snapshot -> create VM instance boot disk -> create a new persistent disk when required
 Snapshots only hold information about changes to the VM instance (kind of like Git versions) so when you delete old snapshots, information that the subsequent snapshots need to create a boot disk gets transfered to the next latest snapshot
+
 
 Managed Instances Groups
 https://cloud.google.com/compute/docs/instance-groups/creating-groups-of-managed-instances#monitoring_groups
@@ -14,3 +46,9 @@ Autohealing, load balancing, autoscaling, auto-updating
 Single-zone or multi-zone in a region
 Max 1000 VMs
 When updating, max 1000 intances can be specified in a single request
+
+
+
+
+
+
