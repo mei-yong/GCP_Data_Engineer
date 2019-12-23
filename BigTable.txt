@@ -1,8 +1,26 @@
 
 BigTable
 
+NoSQL
+BigTable is good for time series data (cause it’s not relational)
+
+Data is stored in Colossus file system. Contains data structures called Tablets used to identify and manage data. Metadata about the Tablets is stored on the VMs in the BigTable cluster itself
+Rebalancing tablets from one node to another is very fast because it’s just a case of updating pointers
+It learns & detects hot spots where a lot of activity is going through a single Tablet then splits the Tablet into 2. Also rebalances the processing by moving the pointer to a Tablet to a different VM in the cluster.
+Best with >300GB & should be used constantly over a period of time so that it learns the best optimisation
+If node fails, metadata just gets copied to the replacement node. Better durability than the default 3 replicas provided by HDFS
+
+
+-------------------------------------------------------------------
+
 Reference: Schema Design
 https://cloud.google.com/bigtable/docs/schema-design
+
+BigTable only has 1 index which is what the data is sorted on. So it’s really important how you construct your BigTable indexes. Ideally, the index you build contains the key information you would do your most frequent searches/filters on.
+e.g. Query: all flights originating in Atlanta and arriving between March 21-29
+ATL#arrival#20190321-1005 – doing this means that all Atlanta arrival flights will be next to each other and will be sorted by date
+BigTable can handle up to 100 column families without losing performance – column families are like partitions but for columns
+When data is changed in BT, Rows are marked for deletion and updated rows are new rows appended to the end. Then BT routinely compacts to reorganise the data for read and write efficiency
 
 Rows are sorted lexicographically by row key - so if your key includes a timestamp, reverse it so that the latest entries appear at the top of the list
 All operations are atomic at the row level - so avoid designs that require atomicity across rows - if you need to make atomic updates or reads to an entity, try to keep all information for an entity in a single row
@@ -13,6 +31,7 @@ For most use cases that involve logging/streaming data/timeseries data, a reason
 Reference: More detail into time series data schema design
 https://cloud.google.com/bigtable/docs/schema-design-time-series
 
+-------------------------------------------------------------------
 
 Reference: Modifying a BigTable instance
 https://cloud.google.com/bigtable/docs/modifying-instance
@@ -21,5 +40,36 @@ Number of clusters
 Application profiles - including replication settings
 Labels - providing metadata
 Development -> Production instance
+
+-------------------------------------------------------------------
+
+Reference: How to diagnose and get best performance
+https://cloud.google.com/bigtable/docs/performance
+Sensibly grouped & ordered row keys
+Column families
+Distribute data evenly across nodes – choose row keys that are randomly distributed
+Make separate workloads for read and write.
+Better to have all nodes in one cluster instead of making 2 that replicate since then you’d double the read write for both clusters
+Though could be a good idea to have a replicate cluster in a different zone or region as backup but it will have more latency
+
+Reference: Monitor an instance
+https://cloud.google.com/bigtable/docs/monitoring-instance
+
+-------------------------------------------------------------------
+
+CBT Tool - interact with BigTable
+https://cloud.google.com/bigtable/docs/cbt-overview
+https://cloud.google.com/bigtable/docs/cbt-reference
+Cbt is the BigTable command line interface – written in Go.
+Can do things like create/delete clusters/instances, read & write, create/delete app profiles
+
+
+HBase - alternative to using the CBT tool (more complex to set up)
+https://cloud.google.com/bigtable/docs/installing-hbase-shell
+https://cloud.google.com/bigtable/docs/hbase-differences
+
+
+
+
 
 
