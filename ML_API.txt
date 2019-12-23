@@ -1,0 +1,93 @@
+
+ML APIs: Ready-to-use
+
+Speech-to-text – audio -> text
+Natural Language – text -> POS entities & sentiment
+Translation – text -> text
+Dialogflow Enterprise Edition – chatbots
+Text-to-speed – text -> audio
+Vision – image -> content tags
+Video Intelligence – video -> motion & action
+
+Speech-to-text API
+https://cloud.google.com/speech-to-text/docs/best-practices
+https://cloud.google.com/speech-to-text/docs/sync-recognize
+
+Vision API
+https://cloud.google.com/vision/docs/labels
+
+----------------------------------------------------------------------------
+
+AutoML: Provide own training dataset
+
+3 types:
+Natural language – English -> custom categories
+Translation
+Vision – images -> custom labels
+
+CSV – UTF-8 encoding – must be in the same GCS bucket as the source files
+Can also create and manage Prepared Datasets programmatically in Python, Java, or Node.js
+CSV column 1 = TRAIN, VALIDATION, TEST. If no column 1, default 80% train, 10% validation, 10% test
+CSV column 2 = paths for the source files hosted on GCS – e.g. gs://bucket/filename.jpg (could also be zip files depending on the model)
+CSV other columns = labels
+CSV cannot contain duplicate lines, blank lines, or Unicode characters
+AutoML does basic checks on the training data CSV file to ensure it will be suitable for training
+Training can be 10 mins – several hours
+Runs epochs (1 full run through all the training data) and tweaks the algorithm each time to minimise the error (or loss function)
+
+To deploy, use the Customer Model URL https://automl.googleapis.com/model_id
+AutoML Custom models are temporary and cannot be exported or saved externally – how long models remain before they’re deleted depends on the model type
+
+To get predictions, call the API via Web UI, via CLI CURL JSON-structured request, or via client libraries for Python, Java, and Node.js.
+You’ll get a JSON response in return. Multiple fields called displayName, keyword classification, and score (confidence value where 1 is high and 0 is low)
+
+Quotas apply for both model creation and service requests
+
+----------------------------------------------------------------------------
+
+Tensorflow
+
+Dropout – regularisation of DNNs to reduce overfitting
+http://laid.delanover.com/dropout-explained-and-implementation-in-tensorflow/
+
+Threading – asynchronous processing – like parallel processing. In TF, it’s called queueing but in tech docs, you’ll see the feed_dict method like so: sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+https://adventuresinmachinelearning.com/introduction-tensorflow-queuing/
+
+Serialisation – transforming in-memory objects into files for storage – e.g. cleansed data output to a CSV to be read by the next step in the process
+https://martin-thoma.com/data-serialization/
+
+Dimension reduction – transform wide dataset with lots of features into less but still fully representative features
+https://www.analyticsvidhya.com/blog/2018/08/dimensionality-reduction-techniques-python/
+
+When retraining a model where the user’s preferences are likely to change frequently, retrain the model using the NEW data and test using the OLD data
+
+DNNs work better with dense features (i.e. not one-hot encoded features)
+You could use a combination of both - DNNLinearCombinedClassifier
+
+Overfitting
+https://towardsdatascience.com/deep-learning-3-more-on-cnns-handling-overfitting-2bd5d99abe5d
+https://developers.google.com/machine-learning/crash-course/regularization-for-simplicity/l2-regularization
+
+DNN Best Practice
+https://developers.google.com/machine-learning/crash-course/training-neural-networks/best-practices
+
+Feature Crosses - especially for linear models like SVC
+https://developers.google.com/machine-learning/crash-course/feature-crosses/video-lecture
+
+
+----------------------------------------------------------------------------
+
+ML Engine
+https://cloud.google.com/ml-engine/docs/managing-models-jobs
+
+----------------------------------------------------------------------------
+
+Tensor Processing Units (TPUs)
+https://cloud.google.com/tpu/docs/
+
+
+
+
+
+
+
