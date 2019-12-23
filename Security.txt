@@ -1,13 +1,27 @@
 
 Identity & Access Management
 
+Reference: Best practices
 https://cloud.google.com/docs/enterprise/best-practices-for-enterprise-organizations
+
 Q: Your organization develops and tests multiple applications on Compute Engine virtual machine instances across 3 environments; Test, Staging, and Production. The separate development teams for each application require minimal access to Production but broad access in Test and Staging. You need to design the Resource Manager structure to support your organization in following least-privilege best practices. What should you do?
 A: Create one project per environment per application. Group each application team member into a Google Group. Assign the application team’s Google Group an Identity Access Management role at the project level. Because a project provides good isolation for each application team and managing membership via a group is easier to maintain over time
 
 
+Reference: Billing-related Roles
+https://cloud.google.com/iam/docs/job-functions/billing
+
+Reference: Dataflow
+https://cloud.google.com/dataflow/docs/concepts/access-control
+
+Reference: BQ
+https://cloud.google.com/bigquery/docs/access-control
+
+
+
 Encryption
 https://cloud.google.com/storage/docs/encryption/
+https://cloud.google.com/kms/docs/
 
 Customer Supplied Keys
 https://cloud.google.com/storage/docs/encryption/customer-supplied-keys
