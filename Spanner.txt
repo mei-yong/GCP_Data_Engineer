@@ -1,0 +1,14 @@
+
+Spanner
+
+Relational db
+Best for global use
+
+Reference: Indexing
+https://cloud.google.com/spanner/docs/secondary-indexes
+
+Reference: Stackdriver integration
+https://cloud.google.com/spanner/docs/monitoring-stackdriver
+
+
+
