@@ -87,49 +87,11 @@ Quotas apply for both model creation and service requests
 
 ----------------------------------------------------------------------------
 
-Tensorflow
-
-Dropout – regularisation of DNNs to reduce overfitting
-http://laid.delanover.com/dropout-explained-and-implementation-in-tensorflow/
-
-Threading – asynchronous processing – like parallel processing. In TF, it’s called queueing but in tech docs, you’ll see the feed_dict method like so: sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-https://adventuresinmachinelearning.com/introduction-tensorflow-queuing/
-
-Serialisation – transforming in-memory objects into files for storage – e.g. cleansed data output to a CSV to be read by the next step in the process
-https://martin-thoma.com/data-serialization/
-
-Dimension reduction – transform wide dataset with lots of features into less but still fully representative features
-https://www.analyticsvidhya.com/blog/2018/08/dimensionality-reduction-techniques-python/
-
-When retraining a model where the user’s preferences are likely to change frequently, retrain the model using the NEW data and test using the OLD data
-
-DNNs work better with dense features (i.e. not one-hot encoded features)
-You could use a combination of both - DNNLinearCombinedClassifier
-
-Overfitting
-https://towardsdatascience.com/deep-learning-3-more-on-cnns-handling-overfitting-2bd5d99abe5d
-https://developers.google.com/machine-learning/crash-course/regularization-for-simplicity/l2-regularization
-
-DNN Best Practice
-https://developers.google.com/machine-learning/crash-course/training-neural-networks/best-practices
-
-Feature Crosses - especially for linear models like SVC
-https://developers.google.com/machine-learning/crash-course/feature-crosses/video-lecture
-
-
-----------------------------------------------------------------------------
-
+Other options for more custom solutions on the cloud
 ML Engine
-https://cloud.google.com/ml-engine/docs/managing-models-jobs
-
-----------------------------------------------------------------------------
-
+Tensorflow on GKE
 Tensor Processing Units (TPUs)
 https://cloud.google.com/tpu/docs/
-
-
-
-
 
 
 
