@@ -9,9 +9,51 @@ Text-to-speed – text -> audio
 Vision – image -> content tags
 Video Intelligence – video -> motion & action
 
+----------------------------------------------------------------------------
+
 Speech-to-text API
 https://cloud.google.com/speech-to-text/docs/best-practices
+
+Reference: Sync Types
 https://cloud.google.com/speech-to-text/docs/sync-recognize
+Synchronous - short audio less than ~1min
+Asynchronous - longer audio while person is still talking
+
+
+Reference: API call from a VM - Qwiklab
+
+# Create a new API key in the console
+
+# Create a VM (see other shell code files)
+
+# SSH into the VM & save the API key to a variable
+export API_KEY=api_key
+
+# Example voice recording
+# gs://cloud-samples-tests/speech/brooklyn.flac
+https://00e9e64bac7cca5b5d896c7a138fac6ab3972adc04d2f4fdf3-apidata.googleusercontent.com/download/storage/v1/b/speech-demo/o/brooklyn.wav?qk=AD5uMEtw583wDvfSKv73VIWiUg4yve8lLUhzrHgVvr9W3Y2k508_YeUX3p4eKBzIf8fWKPuwaOh6B6CsbUio69fD-4swMROLtYpeiMrFvvjrlOIDm0Ls1GUmZy2czPImqfyK9dlSZ50Q4TNSMi8ag4l4dHjHjHDSlU42jBqOlGWz3OHoke9B5qHrVAI2ahSoquGdcmb8AUzZHt0dS1hi-MY1ljczpz71IwJ2Fo1dIGy7DeNJYPrBzixcXMk5xcWf3XU3y3IvciJIfzNSL_-O9Vnsj4dArLizncqfJ4S7YL6QPdtJn5DwmvuT2eL0_8PjnE5Q_DRf0O3UgnrH7Ttr5FewqxnF7AKRHct8MbH-fN9WUCEb_X_4kr4WfdJzmn8O5ZH6z02SjEsvu1e3KEPLEHLQidl2gtexFg-apwZsBUMK-krMhe5JP23jBJzm1jHjleZlIuygfAOshGiJPQIe-YrVXtByHkeiCWQQtTwnizf4bGk3JON2mh7A_IoOJDmUDrGRfqv-ivTmQ2Y2FCbB-pnebrw6nwPvZIw5efho-czXddvuIxmrILCilengC6qudO452OXTBBIUaCzRIxMFKkewP5bt6x91ooZvmL2pZ0_KmpHpEeJ7rK7GgMfpVjGHz_-RCjLHh740dp9X6f2AWp2aURJVdFuv1WkwCFaNTp7lsQWHNSld15cOvpnff1XRorE1jQwMDGETx271Qg_3pIK_3FRbxHsCsvpj0ZvIo90EmrCRE7Sz3cmfGDY85K8C1QZniMxIn1FY1p9aPuK557-5Iva7wkCwQuxFuePMPfC7IHizWONeCkw
+
+# Create a request json to build the request
+touch request.json
+
+# Open the file and edit it
+nano request.json
+{'config': {'encoding':'FLAC',
+			'languageCode':'en-US'}
+,{'audio':{'uri':"gs://cloud-samples-tests/speech/brooklyn.flac"} } }
+
+
+# Make the API call via curl
+curl -s -X POST -H "Content-Type: application/json" --data-binary@request.json \
+"https://speech.googleapis.com/v1/speech:recognize?key=${API_KEY}"
+
+
+# Make the API call via curl & save the output
+curl -s -X POST -H "Content-Type: application/json" --data-binary@request.json \
+"https://speech.googleapis.com/v1/speech:recognize?key=${API_KEY}" > result.json
+
+
+----------------------------------------------------------------------------
 
 Vision API
 https://cloud.google.com/vision/docs/labels
