@@ -5,7 +5,12 @@ Data Studio
 Access to the dashboards is not restricted but only users with the correct IAM permissions to the underlying BQ dataset can actually see the data dashboards
 
 Caching
-Query cache - similar to BQ caching, if the dashboard you request requires running the same BQ query you've run before, Data Studio pulls from cache rather than querying BQ again
-Prefetch cache - aka smart cache. it tries to predict what your next query will be and will fetch the required data before you actually perform a query to speed up performance
+Query cache (cannot be disabled) - similar to BQ caching, if the dashboard you request requires running the same BQ query you've run before, Data Studio pulls from cache rather than querying BQ again
+Prefetch cache (can be disabled) - aka smart cache. it tries to predict what your next query will be and will fetch the required data before you actually perform a query to speed up performance
 https://quizlet.com/295465244/google-data-studio-all-about-the-cache-flash-cards/
+
+To-Do
+* how you connect DataStudio to storage solutions
+* What is the difference between caching options with Viewer credentials vs Owner credentials https://support.google.com/datastudio/answer/7020039?hl=en
+
 
