@@ -1,0 +1,54 @@
+
+Neo4j on GCP cluster
+https://medium.com/neo4j/running-neo4j-on-google-cloud-6592c1b4e4e5
+
+Neo4j Enterprise on GCP Marketplace
+https://neo4j.com/developer/neo4j-google-cloud-launcher/
+
+Bitnami stack
+https://bitnami.com/stack/neo4j
+
+Causal Clusters
+https://neo4j.com/docs/operations-manual/current/clustering/introduction/
+* Gives safety + scale + causal consistency = can read & write even with hardware or network failures
+* Core servers safeguard data by replicating all transactions using the Raft protocol. Once majority of Core Servers in a cluster have accepted the transaction, then it's safe to acknowledge the commit to the end user app
+* Read Replicas scale out graph workloads by acting like caches for the data that Core Servers safeguard. They're fully-fledged Neo4j dbs capable of fulfilling arbitrary (read-only) graph queries & procedures
+* Causal consistency means that data that is written via the Core Servers can be read by all the cores - i.e. if one instance is updated with a write, then all the other cores should be able to read that change
+
+
+
+# Create firewall
+# Port 7473 is for HTTPS access to Neo4j Browser (the web-based shell we use to interact with the database)
+# Port 7687 is for the binary Bolt protocol, to send queries to the database
+# source-ranges allows all traffic from the entire internet
+# target-tags indicates that this rule applies to any VM in your google project that is tagged “neo4j”
+gcloud compute firewall-rules create allow-neo4j-bolt-https \
+   --allow tcp:7473,tcp:7687 \
+   --source-ranges 0.0.0.0/0 \
+   --target-tags neo4j
+   
+# Create neo4j instance from the open source image
+# If you want Neo4j Enterprise instead of Community, use this image instead: neo4j-enterprise-1–3–3-5
+gcloud compute instances create my-neo4j \
+   --scopes https://www.googleapis.com/auth/cloud-platform \
+   --image-project launcher-public --tags neo4j \
+   --image=neo4j-community-1-3-3-5
+   
+   
+# Go to below address to log into neo4j using username 'neo4j' and password 'neo4j'
+https://YOUR_VM_IP:7473
+
+# Alternatively, use cypher-shell to work with the db directly using its public IP and 7867 Bolt port
+
+# Create a new graph db by selecting 'Connect to Remote Graph'
+# Name your db
+# For host, input your VM IP
+# Bolt port 7687
+
+
+# Delete the GCP instance when you're done
+gcloud compute instances delete $NEO4J_DB_NAME
+
+
+
+
