@@ -1,8 +1,66 @@
 
 Dataproc
 
+Reference: Hadoop Migration
+https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-overview
+https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-data
+https://cloud.google.com/solutions/migration/hadoop/hadoop-gcp-migration-jobs
+
+Hadoop, Spark, Pig, Hive
+Unlike traditional monolithic on-prem Hadoop clusters, GCP Clusters should be job specific so that they can be spun up and down and managed easier (this is the ephemeral model). Also means you don't need separate dev, test, prod environments cause you just spin up however many clusters you need with the same configs.
+Data storage should be separate from the cluster caues it's cheaper and allows other GCP products to get the data. Storage should be in the same region & zone as the cluster.
+
+Incremental migration
+1) Move data first (start with the least critical) using Hadoop DistCp jobs
+* Either push or pull. Push is easier since you don't have to setup a GCP cluster to do the transfer but it puts network strain since all the blocks of data need to be collated in a source node and then sent over to GCP. So if your source node is already at capacity or you don't want network strain, then use pull instead.
+* Ways to split the data: timestamp, jobs, ownership
+2) POCs for each of the jobs before full release (do burst processing on archive data - gives experience with scaling on GCP)
+* Connect to storage via default pre-installed Cloud Storage connector
+* Cluster sizing: How many nodes, what VM type for master node, what VM type for worker nodes
+* Primary disk options: size of primary disk
+* Preemptible VMs
+3) Ephemeral clusters
+4) Replace other tools with GCP tools
+
+Works best with a cluster that processes a lot of small jobs or processes a single large job
+Does not support Spark Structured Streaming (streaming built on top of Spark SQL)
+Not good for sparsely utilised or idle clusters – best to spin clusters up or down when idle – this can be triggered by: Dataproc Workflows, Cloud Composer, Cluster Scheduled Deletion
+
+Autoscaling
+https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling
+The cluster adds or removes nodes periodically based on workload
+Scale_up.factor = how many nodes to add in a scale up event
+Scale_down.factor = how many nodes to remove in a scale down event
+Graceful_decomission_timeout = how long to wait for a job to complete before shutting down the node
+
+Scheduled Deletion
+Can set between 10mins – 14 days down to the second
+Options for scheduling:
+Fixed amount of time after cluster enters idle state
+Timer via timestamp
+Duration time in seconds to wait before deleting cluster
+Must be set via CLI or REST API – cannot use Console
+
+For Dataproc to output data to BigQuery (BQ connector), it goes through GCS first due to sharding. Dataproc uses distributed parallel processing so if it were to connect directly with BQ, you’d need a separate BQ job for each shard. The BQ job submission works slightly differently depending on the Dataproc client – e.g. Spark Scala can directly generate the request via the API to BQ but PySpark has to issue bq shell commands to run the job
+
+The Dataproc Workflow Template is a YAML file processed through a DAG – Directed Acyclic Graph. Available via gcloud CLI and REST API but NOT Console.
+The template can be created in gcloud CLI and you can list workflows and workflow metadata to help diagnose issues.
+
 If you have very critical jobs, you can specify a High Availability cluster upon cluster creation
 Instead of the default 1 master node, you get 3 master nodes
 https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/high-availability
+
+Troubleshooting Data Performance Issues
+Is the data in the same region as the cluster?
+Is the network traffic being funneled?
+Dataproc works better with a few large files or partitions
+Is the persistent disk too small? Instead of 100 ok nodes, get 50 really good nodes
+What is the processing on your VMs?
+Is your Hadoop too old? i.e. less than 2.7.0?
+Are you using private IPs that require the flow to take an extra step interfacing with it?
+
+HDFS is better if you want:
+To perform appends and truncates
+
 
 
