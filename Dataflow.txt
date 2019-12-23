@@ -160,6 +160,36 @@ Temporary location = gs://$BUCKET_NAME/temp
 SELECT * FROM `PROJECT.taxirides.realtime` LIMIT 1000
 
 
+Google Shell Example 3
+
+# Activate the virtual environment
+source my_env/bin/activate
+
+# Install Apache Beam
+pip install apache-beam[gcp]
+
+# Run the Python file - by default, will use DirectRunner (could specify DataflowRunner in the Python file
+python -m apache_beam.examples.wordcount --output OUTPUT_FILE
+
+# Check the output file
+ls
+cat $FILE
+
+# Run the pipeline remotely
+
+BUCKET=gs://$BUCKET_NAME
+
+python -m apache_beam.examples.wordcount \
+	--project $DEVSHELL_PROJECT_ID \
+	--runner DataflowRunner \
+	--staging_location $BUCKET/staging \
+	--temp_location $BUCKET/temp \
+	--output $BUCKET/results/output
+
+# Check outputs in the console by navigating to Dataflow and/or GCS
+
+
+
 ------------------------------------------------------------
 
 
