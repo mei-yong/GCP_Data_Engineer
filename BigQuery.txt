@@ -334,6 +334,14 @@ bq mk \
 timestamp:timestamp,meter_reading:float,meter_increment:float,ride_status:string,\
 passenger_count:integer -t taxirides.realtime
 
+# View entries in a particular table in the dataset
+bq ls $DEVSHELL_PROJECT_ID:dataset:table
+
+# Export BQ to GCS
+BUCKET=$BUCKET_NAME
+bq extract dataset.table \
+gs://$BUCKET/bq/table_name.csv
+
 # Example query
 bq query \
 'SELECT name,count 
@@ -345,7 +353,30 @@ ORDER BY count DESC LIMIT 5 '
 * -r removes all tables under the dataset
 bq rm -r babynames
 
-
+# Example schema file
+[
+    {
+        "name": "YEAR",
+        "type": "INTEGER",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "FULL_DATE",
+        "type": "STRING"
+    },
+    {
+        "name": "CARRIER",
+        "type": "STRING"
+    },
+    {
+        "name": "TAIL_NUMBER",
+        "type": "STRING"
+    },
+    {
+        "name": "FLIGHT_NUMBER",
+        "type": "STRING"
+    }
+]
 
 
 
