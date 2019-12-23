@@ -31,7 +31,104 @@ Max 1000 VMs
 When updating, max 1000 intances can be specified in a single request
 
 
+------------------------------------------------------
 
+Example: Setup NGINX web server on a VM
+
+http://nginx.org/
+
+# See defaults
+gcloud compute instances create --help
+
+# Set default zone
+gcloud config set compute/zone $ZONE
+
+# Exit from help
+Ctrl + C
+
+# Create a new VM instance (don't need zone if already set default)
+gcloud compute instances create $INSTANCE_NAME \
+--machine-type n1-standard-2 \
+--zone $ZONE
+
+# SSH into the VM
+gcloud compute ssh $INSTANCE_NAME
+
+# Access root using sudo
+sudo su -
+
+# Update OS
+apt-get update
+
+# Install NGINX
+apt-get install nginx -y
+
+# Check NGINX is running
+ps auwx | grep nginx
+
+# Access NGINX by opening the external IP in a web browser window
+
+
+------------------------------------------------------
+
+Example: 2-Tier Web App with Node.js frontend and MongoDB backend
+
+Create 2 VM instances - one for FE and one for BE
+* Give them names
+* Choose region & zone
+* Machine type micro
+* Boot disk Ubuntu 14.04 LTS
+* Firewall selector Allow HTTP traffic to open port 80 to access the app
+
+In Cloud Shell
+
+# SSH into the backend VM
+gcloud compute --project $PROJECT ssh --zone $BACKEND-ZONE $BACKEND-NAME
+
+# Update packages
+sudo apt-get update
+
+# Install MongoDB (it auto runs when you install)
+sudo apt-get install mongodb
+
+# Stop the MongoDB
+sudo service mongodb stop
+
+# Create a directory for MongoDB
+sudo mkdir $HOME/db
+
+# Run the MongoDB service in the background on port 80
+sudo mongod --dbpath $HOME/db --port 80 --fork --logpath /var/tmp/mongodb
+
+# Exit & close the backend instance
+exit
+
+# SSH into the frontend VM
+gcloud compute --project $PROJECT ssh --zone $FRONTEND-ZONE $FRONTEND-NAME
+
+# Update packages
+sudo apt-get update
+
+# Install git and npm
+curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+# Install Node.js
+sudo apt-get install git nodejs
+
+# Clone the sample app
+git clone https://github.com/GoogleCloudPlatform/todomvc-mongodb.git
+
+# Install app dependencies
+cd todomvc-mongodb; npm install
+sed -i -e 's/8080/80/g' server.js
+
+# Start the to-do web app
+sudo nohup nodejs server.js --be_ip [backend-internal-ip] --fe_ip [frontend-internal-ip] &
+
+# Exit & close the frontend instance
+exit
+
+# Access THE APP by opening the external IP in a web browser window
 
 
 
