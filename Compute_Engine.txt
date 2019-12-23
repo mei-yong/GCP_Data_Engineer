@@ -5,10 +5,10 @@ Google Compute Engine (GCE)
 Reference: Connect to Instance
 https://cloud.google.com/compute/docs/instances/connecting-to-instance
 
-Reference: How to run a Python script in Shell and still have it running even if you exit Shell
+How to run a Python script in Shell and still have it running even if you exit Shell
 https://stackoverflow.com/questions/47455680/running-a-python-script-on-google-cloud-compute-engine
 
-Reference: Regions & Zones - namespaces
+Regions & Zones - namespaces
 https://cloud.google.com/compute/docs/regions-zones/
 It's good to put bunches of resources in different regions so that if one of them fails, others are still ok
 Every resource in Compute Engine must be uniquely named across the project no matter if they're in different regions/zones
