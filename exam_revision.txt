@@ -15,6 +15,11 @@ https://www.udemy.com/course/google-cloud-certified-professional-data-engineer-p
 
 --------------------------------------------------------------------------
 
+1-Minute Youtube videos
+https://www.youtube.com/playlist?list=PLIivdWyY5sqIij_cgINUHZDMnGjVx3rxi
+
+--------------------------------------------------------------------------
+
 Other People's Notes
 
 Data Dossier - from the Linux Academy
