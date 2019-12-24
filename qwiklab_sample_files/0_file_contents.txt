@@ -1,0 +1,12 @@
+
+File Contents
+
+train_and_apply.py - PySpark
+send_sensor_data.py - PubSub publisher
+pyspark_wordcount.py - PySpark
+dataproc_NLP.py - PySpark, sentiment API
+dataflow_mapreduce.py - Beam
+dataflow_mapreduce_2.py - Beam
+autoML_predict.py - AutoML get pred
+cloudmle.ipynb - package up a TF model and run it in Cloud ML Engine
+a_ + b_ + c_ + d_ - building a model E2E in Datalab
