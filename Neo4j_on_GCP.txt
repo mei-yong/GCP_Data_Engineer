@@ -51,4 +51,66 @@ gcloud compute instances delete $NEO4J_DB_NAME
 
 
 
+----------------------------------------------------------------------------
 
+Steps to Set Up Neo4j VM with Bitnami's distribution
+
+# Manual Set Up
+
+1) On GCP Marketplace, search for "Neo4j Certified by Bitnami"
+   * Cost should be $24.75 per month estimated
+
+2) Fill in the form details with the below
+
+Deployment name
+neo4j-1-vm
+
+Zone
+europe-west1-d
+
+Machine type
+n1-standard-1 (1 vCPU, 3.75 GB memory)
+
+Network
+project-id-base-vpc
+
+Subnetwork
+project-id-base
+
+External IP
+None
+
+
+# Automated Setup using Gcloud Shell
+
+gcloud beta compute --project=venti-sandbox-831708 \
+instances create neo4j-1-vm \
+	--zone=europe-west1-d \
+	--machine-type=n1-standard-1 \
+	--subnet=sandbox-base-vpc \
+	--no-address \
+	--metadata=bitnami-base-password=qSji8T82Xm3G,google-monitoring-enable=0,google-logging-enable=0 \
+	--maintenance-policy=MIGRATE \
+	--service-account=603021449148-compute@developer.gserviceaccount.com \
+	--scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/devstorage.read_write,https://www.googleapis.com/auth/cloud.useraccounts.readonly,https://www.googleapis.com/auth/cloudruntimeconfig \
+	--tags=neo4j-1-vm-deployment,https-server \
+	--image=bitnami-neo4j-3-5-13-0-linux-debian-9-x86-64-nami \
+	--image-project=bitnami-launchpad \
+	--boot-disk-size=10GB \
+	--boot-disk-type=pd-standard \
+	--boot-disk-device-name=neo4j-1-vm-vm-1 \
+	--labels=goog-dm=neo4j-1-vm \
+	--reservation-affinity=any
+
+gcloud compute --project=venti-sandbox-831708 \
+firewall-rules create sandbox-base-vpc-allow-https \
+	--direction=INGRESS \
+	--priority=1000 \
+	--network=sandbox-base-vpc \
+	--action=ALLOW \
+	--rules=tcp:443 \
+	--source-ranges=0.0.0.0/0 \
+	--target-tags=https-server
+   
+   
+   
