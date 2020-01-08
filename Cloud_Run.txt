@@ -24,10 +24,10 @@ Allow unauthenticased invocations
 -------------------------------------------------------------------------
 
 https://cloud.google.com/run/docs/quickstarts
-https://cloud.google.com/container-registry/docs/managing#deleting_images
+
 -------------------------------------------------------------------------
 
-
+# How to Deploy a Container on Cloud Run
 https://cloud.google.com/run/docs/quickstarts/build-and-deploy
 
 # Initial setup
@@ -36,7 +36,7 @@ Install SDKs on local machine? https://cloud.google.com/sdk/docs/
 Update components: gcloud components update
 
 
-In app.py
+# In app.py
 ------------------------------------------------------
 import os
 from flask import Flask
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))
 ------------------------------------------------------
 
-In Dockerfile.py
+# In Dockerfile.py
 ------------------------------------------------------
 # Starts a Gunicorn web server that listens on the port defined by the PORT environment variable
 
@@ -75,7 +75,7 @@ RUN pip install Flask gunicorn
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app
 ------------------------------------------------------
 
-In .dockerignore
+# In .dockerignore
 ------------------------------------------------------
 Dockerfile
 README.md
@@ -85,7 +85,7 @@ README.md
 __pycache__
 ------------------------------------------------------
 
-In .gcloudignore
+# In .gcloudignore
 ------------------------------------------------------
 Same as dockerignore??
 ------------------------------------------------------
