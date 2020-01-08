@@ -1,0 +1,115 @@
+
+Cloud Run
+
+https://cloud.google.com/run/docs/
+Run stateless containers. Serverless. Triggered by web requests or PubSub events.
+Cloud Run automatically scales your container up to handle the received requests, then scales down when demand decreases. You only pay for the CPU, Memory and Networking consumed during request handling
+Whilst you won't be charged for when the service isn't running, you might still be charged for storing the container image in Container Registry - you can delete your image or your project to avoid charges
+
+Reference: Differences between Cloud Run fully managed vs Cloud Run for Anthos
+Note: the Anthos version is a GKE cluster with Cloud Run for Anthos
+https://cloud.google.com/run/choosing-a-platform
+
+
+-------------------------------------------------------------------------
+
+# Test your Cloud Run is working
+https://cloud.google.com/run/docs/quickstarts/prebuilt-deploy
+Navigation > Cloud Run > Create Service
+Container image: gcr.io/cloudrun/hello
+Location: europe-west1
+Service name: [your service name here]
+Allow unauthenticased invocations
+
+-------------------------------------------------------------------------
+
+https://cloud.google.com/run/docs/quickstarts
+https://cloud.google.com/container-registry/docs/managing#deleting_images
+-------------------------------------------------------------------------
+
+
+https://cloud.google.com/run/docs/quickstarts/build-and-deploy
+
+# Initial setup
+Enable Cloud Build & Cloud Run APIs
+Install SDKs on local machine? https://cloud.google.com/sdk/docs/
+Update components: gcloud components update
+
+
+In app.py
+------------------------------------------------------
+import os
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    target = os.environ.get('TARGET', 'World')
+    return 'Hello {}!\n'.format(target)
+
+if __name__ == "__main__":
+    app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))
+------------------------------------------------------
+
+In Dockerfile.py
+------------------------------------------------------
+# Starts a Gunicorn web server that listens on the port defined by the PORT environment variable
+
+# Use the official lightweight Python image.
+# https://hub.docker.com/_/python
+FROM python:3.7-slim
+
+# Copy local code to the container image.
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+COPY . ./
+
+# Install production dependencies.
+RUN pip install Flask gunicorn
+
+# Run the web service on container startup. Here we use the gunicorn
+# webserver, with one worker process and 8 threads.
+# For environments with multiple CPU cores, increase the number of workers
+# to be equal to the cores available.
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app
+------------------------------------------------------
+
+In .dockerignore
+------------------------------------------------------
+Dockerfile
+README.md
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+------------------------------------------------------
+
+In .gcloudignore
+------------------------------------------------------
+Same as dockerignore??
+------------------------------------------------------
+
+
+# Build the container image using Cloud Build - stored in Container Registry
+gcloud builds submit --tag gcr.io/PROJECT-ID/servicename
+
+# Deploy the container
+gcloud run deploy --image gcr.io/PROJECT-ID/servicename --platform managed
+service name: servicename
+region: europe-west1
+allow unauthenticated invocation: y
+
+# Delete an image from the Container Registry
+https://cloud.google.com/sdk/gcloud/reference/container/images/delete
+gcloud container images delete [HOSTNAME]/[PROJECT-ID]/[IMAGE]@[IMAGE_DIGEST]
+gcloud container images delete [HOSTNAME]/[PROJECT-ID]/[IMAGE]:[TAG] --force-delete-tags
+[HOSTNAME] is listed under Location in the console. It's one of four options: gcr.io, us.gcr.io, eu.gcr.io, or asia.gcr.io.
+[PROJECT-ID] is your Google Cloud Console project ID. If your project ID has a colon in it (:) see Domain-scoped projects.
+[IMAGE] is the image's name in Container Registry.
+[IMAGE_DIGEST] is the sha256 hash value of the image contents.
+[TAG] is the tag of the image you want to remove.
+
+
+
+
