@@ -112,5 +112,11 @@ firewall-rules create sandbox-base-vpc-allow-https \
 	--source-ranges=0.0.0.0/0 \
 	--target-tags=https-server
    
-   
-   
+
+----------------------------------------------------------------------------
+
+VM location of files for building graph db
+/home/bitnami/stack/neo4j/import
+
+
+
