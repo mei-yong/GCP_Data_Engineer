@@ -54,6 +54,9 @@ gcloud compute instances create $INSTANCE_NAME \
 # SSH into the VM
 gcloud compute ssh $INSTANCE_NAME
 
+# Tunnel into the VM
+gcloud compute ssh $INSTANCE_NAME --$ZONE --tunnel-through-iap
+
 # Access root using sudo
 sudo su -
 
