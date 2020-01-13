@@ -14,6 +14,7 @@ This repository contains all of my notes for day-to-day working with GCP
 ### Compute & ETL
 * [BigQuery](https://raw.githubusercontent.com/mei-yong/GCP/master/BigQuery.txt)
 * [Cloud Funtions](https://raw.githubusercontent.com/mei-yong/GCP/master/Cloud_Functions.txt)
+* [Cloud Run](https://raw.githubusercontent.com/mei-yong/GCP_Data_Engineer/master/Cloud_Run.txt)
 * [Compute Engine (GCE)](https://raw.githubusercontent.com/mei-yong/GCP/master/Compute_Engine.txt)
 * [Data Fusion](https://raw.githubusercontent.com/mei-yong/GCP/master/Data_Fusion.txt)
 * [Dataflow](https://raw.githubusercontent.com/mei-yong/GCP/master/Dataflow.txt)
