@@ -327,4 +327,119 @@ gcloud beta run deploy pdf-converter \
   --set-env-vars PDF_BUCKET=$GOOGLE_CLOUD_PROJECT-processed
   
   
-  
+  ------------------------------------------------------------------------------------------------------------
+
+
+------------------------------------
+app.py
+------------------------------------
+import os
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    target = os.environ.get('TARGET', 'World')
+    return 'Hello {}!\n'.format(target)
+	
+@app.route('/food')
+def food():
+    target = os.environ.get('TARGET', 'potatoes')
+    return 'I love {}!\n'.format(target)
+
+if __name__ == "__main__":
+    app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))
+
+------------------------------------
+Dockerfile
+------------------------------------
+# Use the official lightweight Python image.
+# https://hub.docker.com/_/python
+FROM python:3.7-slim
+
+# Copy local code to the container image.
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+COPY . ./
+
+# Install production dependencies.
+RUN pip install Flask gunicorn
+
+# Run the web service on container startup. Here we use the gunicorn
+# webserver, with one worker process and 8 threads.
+# For environments with multiple CPU cores, increase the number of workers
+# to be equal to the cores available.
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app
+
+------------------------------------
+service.yml
+------------------------------------
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: food
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+      - image: docker.io/meiyongkpmg/food
+        env:
+        - name: TARGET
+          value: "Python Sample v1"
+
+
+# Build
+gcloud builds submit \
+  --tag gcr.io/$GOOGLE_CLOUD_PROJECT/foodtest
+
+# Deploy
+gcloud beta run deploy foodtest \
+  --image gcr.io/$GOOGLE_CLOUD_PROJECT/foodtest \
+  --platform managed \
+  --region europe-west1 \
+  --no-allow-unauthenticated
+
+# Update the input variable
+gcloud run services update foodtest \
+--update-env-vars TARGET=carrots \
+--platform managed \
+--region europe-west1
+
+# Trigger the food function in the app
+curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://foodtest-2mqxaowwiq-ew.a
+.run.app/food
+
+
+
+
+
+
+
+
+
+
+
+
+# Build
+gcloud builds submit \
+  --tag gcr.io/$GOOGLE_CLOUD_PROJECT/bqtest
+
+# Deploy
+gcloud beta run deploy bqtest \
+  --image gcr.io/$GOOGLE_CLOUD_PROJECT/bqtest \
+  --platform managed \
+  --region europe-west1 \
+  --no-allow-unauthenticated
+
+# Trigger the bqtest function in the app
+curl -H \
+"Authorization: Bearer $(gcloud auth print-identity-token)" \
+https://bqtest-2mqxaowwiq-ew.a.run.app/bqtest
+
+
+
+
+
