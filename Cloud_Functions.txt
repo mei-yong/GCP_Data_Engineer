@@ -2,6 +2,7 @@
 Cloud Functions
 
 Serverless, stateless, execution environment for app code
+No custom Python libraries so if you need custom ones, consider Cloud Run instead of GKE
 Triggered by an event – could be GCS, Pub/Sub, HTTP web events, etc
 1)	Authentication
 2)	Send watch request – sync notification event
