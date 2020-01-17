@@ -5,9 +5,6 @@ https://medium.com/neo4j/running-neo4j-on-google-cloud-6592c1b4e4e5
 Neo4j Enterprise on GCP Marketplace
 https://neo4j.com/developer/neo4j-google-cloud-launcher/
 
-Bitnami stack
-https://bitnami.com/stack/neo4j
-
 Causal Clusters
 https://neo4j.com/docs/operations-manual/current/clustering/introduction/
 * Gives safety + scale + causal consistency = can read & write even with hardware or network failures
@@ -53,7 +50,9 @@ gcloud compute instances delete $NEO4J_DB_NAME
 
 ----------------------------------------------------------------------------
 
-Steps to Set Up Neo4j VM with Bitnami's distribution
+Neo4j VM with Bitnami's Distribution
+
+https://bitnami.com/stack/neo4j
 
 # Manual Set Up
 
@@ -83,15 +82,19 @@ None
 
 # Automated Setup using Gcloud Shell
 
-gcloud beta compute --project=venti-sandbox-956450 \
-instances create neo4j-1-vm \
+PROJECT_ID = $"venti-sandbox-956450"
+VM_NAME = $"neo4j-1-vm"
+SERVICE_ACC = $"255431157345-compute@developer.gserviceaccount.com"
+
+gcloud beta compute --project=$PROJECT_ID \
+instances create $VM_NAME \
 	--zone=europe-west1-d \
 	--machine-type=n1-standard-1 \
 	--subnet=sandbox-base-vpc \
 	--no-address \
 	--metadata=bitnami-base-password=qSji8T82Xm3G,google-monitoring-enable=0,google-logging-enable=0 \
 	--maintenance-policy=MIGRATE \
-	--service-account=255431157345-compute@developer.gserviceaccount.com \
+	--service-account=$SERVICE_ACC \
 	--scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/devstorage.read_write,https://www.googleapis.com/auth/cloud.useraccounts.readonly,https://www.googleapis.com/auth/cloudruntimeconfig \
 	--tags=neo4j-1-vm-deployment,https-server \
 	--image=bitnami-neo4j-3-5-13-0-linux-debian-9-x86-64-nami \
@@ -102,7 +105,7 @@ instances create neo4j-1-vm \
 	--labels=goog-dm=neo4j-1-vm \
 	--reservation-affinity=any
 
-gcloud compute --project=venti-sandbox-956450 \
+gcloud compute --project=$PROJECT_ID \
 firewall-rules create sandbox-base-vpc-allow-https \
 	--direction=INGRESS \
 	--priority=1000 \
@@ -113,10 +116,10 @@ firewall-rules create sandbox-base-vpc-allow-https \
 	--target-tags=https-server
    
 
-----------------------------------------------------------------------------
-
 VM location of files for building graph db
-/home/bitnami/stack/neo4j/import
+cd /home/bitnami/stack/neo4j/import
 
+VM location of cypher-shell
+cd /home/bitnami/stack/neo4j/bin
 
 
