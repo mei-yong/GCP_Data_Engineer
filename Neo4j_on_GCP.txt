@@ -83,7 +83,7 @@ None
 
 # Automated Setup using Gcloud Shell
 
-gcloud beta compute --project=venti-sandbox-831708 \
+gcloud beta compute --project=venti-sandbox-956450 \
 instances create neo4j-1-vm \
 	--zone=europe-west1-d \
 	--machine-type=n1-standard-1 \
@@ -102,7 +102,7 @@ instances create neo4j-1-vm \
 	--labels=goog-dm=neo4j-1-vm \
 	--reservation-affinity=any
 
-gcloud compute --project=venti-sandbox-831708 \
+gcloud compute --project=venti-sandbox-956450 \
 firewall-rules create sandbox-base-vpc-allow-https \
 	--direction=INGRESS \
 	--priority=1000 \
