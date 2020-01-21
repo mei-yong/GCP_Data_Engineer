@@ -1,4 +1,104 @@
 
+Neo4j VM with Bitnami's Distribution
+
+https://bitnami.com/stack/neo4j
+
+# Manual Set Up
+
+1) On GCP Marketplace, search for "Neo4j Certified by Bitnami"
+   * Cost should be $24.75 per month estimated
+
+2) Fill in the form details with the below
+
+Deployment name
+neo4j-1-vm
+
+Zone
+europe-west1-d
+
+Machine type
+n1-standard-1 (1 vCPU, 3.75 GB memory)
+
+Network
+project-id-base-vpc
+
+Subnetwork
+project-id-base
+
+External IP
+None
+
+
+# Automated Setup using Gcloud Shell
+
+PROJECT_ID = $"projectname"
+VM_NAME = $"neo4j-1-vm"
+SERVICE_ACC = $"ide@developer.gserviceaccount.com"
+
+gcloud beta compute --project=$PROJECT_ID \
+instances create $VM_NAME \
+	--zone=europe-west1-d \
+	--machine-type=n1-standard-1 \
+	--subnet=sandbox-base-vpc \
+	--no-address \
+	--metadata=bitnami-base-password=qSji8T82Xm3G,google-monitoring-enable=0,google-logging-enable=0 \
+	--maintenance-policy=MIGRATE \
+	--service-account=$SERVICE_ACC \
+	--scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/devstorage.read_write,https://www.googleapis.com/auth/cloud.useraccounts.readonly,https://www.googleapis.com/auth/cloudruntimeconfig \
+	--tags=neo4j-1-vm-deployment,https-server \
+	--image=bitnami-neo4j-3-5-13-0-linux-debian-9-x86-64-nami \
+	--image-project=bitnami-launchpad \
+	--boot-disk-size=10GB \
+	--boot-disk-type=pd-standard \
+	--boot-disk-device-name=neo4j-1-vm-vm-1 \
+	--labels=goog-dm=neo4j-1-vm \
+	--reservation-affinity=any
+
+gcloud compute --project=$PROJECT_ID \
+firewall-rules create sandbox-base-vpc-allow-https \
+	--direction=INGRESS \
+	--priority=1000 \
+	--network=sandbox-base-vpc \
+	--action=ALLOW \
+	--rules=tcp:443 \
+	--source-ranges=0.0.0.0/0 \
+	--target-tags=https-server
+   
+
+# Open the relevant ports (Windows)
+gcloud compute ssh $VM_NAME --project $PROJECT_ID --zone=europe-west1-d -- -L 7473:localhost:7473 -L 7687:localhost:7687 -L 7474:localhost:7474
+
+# Open the relevant ports (Mac)
+gcloud compute ssh $VM_NAME --project $PROJECT_ID --zone=europe-west1-d -- -NL 7473:localhost:7473 -NL 7687:localhost:7687 -NL 7474:localhost:7474
+
+# SSH into the VM in GCP
+gcloud beta compute --project $PROJECT_ID ssh --zone "europe-west1-d" $VM_NAME --tunnel-through-iap
+
+# Change password
+https://neo4j.com/docs/operations-manual/current/configuration/set-initial-password/
+cd /usr/bin
+sudo neo4j-admin set-initial-password <password>
+
+# Location of CSV import files
+cd /home/bitnami/stack/neo4j/import
+cd /opt/bitnami/neo4j/import/
+
+# Location of neo4j app files
+cd /home/bitnami/stack/neo4j/bin
+cd /opt/bitnami/neo4j/bin
+
+# Data import
+neo4j-admin import --nodes:Entity=/home/bitnami/stack/neo4j/import/nodes.csv --relationships:PAID=/home/bitnami/stack/neo4j/import/rels.csv --id-type=STRING --ignore-missing-nodes=true 
+
+# Copy file from bucket to VM directory
+gsutil cp gs://bucket/filename.ext /home/bitnami/stack/neo4j/import
+
+
+
+----------------------------------------------------------------------------
+
+
+
 Neo4j on GCP cluster
 https://medium.com/neo4j/running-neo4j-on-google-cloud-6592c1b4e4e5
 
@@ -45,81 +145,5 @@ https://YOUR_VM_IP:7473
 
 # Delete the GCP instance when you're done
 gcloud compute instances delete $NEO4J_DB_NAME
-
-
-
-----------------------------------------------------------------------------
-
-Neo4j VM with Bitnami's Distribution
-
-https://bitnami.com/stack/neo4j
-
-# Manual Set Up
-
-1) On GCP Marketplace, search for "Neo4j Certified by Bitnami"
-   * Cost should be $24.75 per month estimated
-
-2) Fill in the form details with the below
-
-Deployment name
-neo4j-1-vm
-
-Zone
-europe-west1-d
-
-Machine type
-n1-standard-1 (1 vCPU, 3.75 GB memory)
-
-Network
-project-id-base-vpc
-
-Subnetwork
-project-id-base
-
-External IP
-None
-
-
-# Automated Setup using Gcloud Shell
-
-PROJECT_ID = $"venti-sandbox-956450"
-VM_NAME = $"neo4j-1-vm"
-SERVICE_ACC = $"255431157345-compute@developer.gserviceaccount.com"
-
-gcloud beta compute --project=$PROJECT_ID \
-instances create $VM_NAME \
-	--zone=europe-west1-d \
-	--machine-type=n1-standard-1 \
-	--subnet=sandbox-base-vpc \
-	--no-address \
-	--metadata=bitnami-base-password=qSji8T82Xm3G,google-monitoring-enable=0,google-logging-enable=0 \
-	--maintenance-policy=MIGRATE \
-	--service-account=$SERVICE_ACC \
-	--scopes=https://www.googleapis.com/auth/bigquery,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/devstorage.read_write,https://www.googleapis.com/auth/cloud.useraccounts.readonly,https://www.googleapis.com/auth/cloudruntimeconfig \
-	--tags=neo4j-1-vm-deployment,https-server \
-	--image=bitnami-neo4j-3-5-13-0-linux-debian-9-x86-64-nami \
-	--image-project=bitnami-launchpad \
-	--boot-disk-size=10GB \
-	--boot-disk-type=pd-standard \
-	--boot-disk-device-name=neo4j-1-vm-vm-1 \
-	--labels=goog-dm=neo4j-1-vm \
-	--reservation-affinity=any
-
-gcloud compute --project=$PROJECT_ID \
-firewall-rules create sandbox-base-vpc-allow-https \
-	--direction=INGRESS \
-	--priority=1000 \
-	--network=sandbox-base-vpc \
-	--action=ALLOW \
-	--rules=tcp:443 \
-	--source-ranges=0.0.0.0/0 \
-	--target-tags=https-server
-   
-
-VM location of files for building graph db
-cd /home/bitnami/stack/neo4j/import
-
-VM location of cypher-shell
-cd /home/bitnami/stack/neo4j/bin
 
 
