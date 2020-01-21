@@ -9,24 +9,12 @@ https://bitnami.com/stack/neo4j
    * Cost should be $24.75 per month estimated
 
 2) Fill in the form details with the below
-
-Deployment name
-neo4j-1-vm
-
-Zone
-europe-west1-d
-
-Machine type
-n1-standard-1 (1 vCPU, 3.75 GB memory)
-
-Network
-project-id-base-vpc
-
-Subnetwork
-project-id-base
-
-External IP
-None
+Deployment name: neo4j-1-vm
+Zone: europe-west1-d
+Machine type: n1-standard-1 (1 vCPU, 3.75 GB memory)
+Network: project-id-base-vpc
+Subnetwork: project-id-base
+External IP: None
 
 
 # Automated Setup using Gcloud Shell
