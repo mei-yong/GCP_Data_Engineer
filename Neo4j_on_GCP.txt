@@ -75,12 +75,23 @@ cd /opt/bitnami/neo4j/import/
 cd /home/bitnami/stack/neo4j/bin
 cd /opt/bitnami/neo4j/bin
 
-# Data import
-neo4j-admin import --nodes:Entity=/home/bitnami/stack/neo4j/import/nodes.csv --relationships:PAID=/home/bitnami/stack/neo4j/import/rels.csv --id-type=STRING --ignore-missing-nodes=true 
 
-# Copy file from bucket to VM directory
-gsutil cp gs://bucket/filename.ext /home/bitnami/stack/neo4j/import
+# Steps to make/remake the db - don't forget to upload latest node and rel CSVs to the bucket
 
+sudo su
+neo4j stop
+rm -r /bitnami/neo4j/data/databases/graph.db
+
+rm /home/bitnami/stack/neo4j/import/nodes.csv
+rm /home/bitnami/stack/neo4j/import/rels1.csv
+rm /home/bitnami/stack/neo4j/import/rels2.csv
+gsutil cp gs://meizilla/nodes.csv /home/bitnami/stack/neo4j/import
+gsutil cp gs://meizilla/rels1.csv /home/bitnami/stack/neo4j/import
+gsutil cp gs://meizilla/rels2.csv /home/bitnami/stack/neo4j/import
+
+neo4j-admin import --mode=csv --nodes=/home/bitnami/stack/neo4j/import/nodes.csv --relationships="/home/bitnami/stack/neo4j/import/rels1.csv, /home/bitnami/stack/neo4j/import/rels2.csv" --id-type=STRING --ignore-missing-nodes=true 
+
+neo4j restart
 
 
 ----------------------------------------------------------------------------
