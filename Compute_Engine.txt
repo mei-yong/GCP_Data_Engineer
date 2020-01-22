@@ -30,6 +30,47 @@ Single-zone or multi-zone in a region
 Max 1000 VMs
 When updating, max 1000 intances can be specified in a single request
 
+------------------------------------------------------
+
+GCE Startup Scripts
+https://cloud.google.com/compute/docs/startupscript
+
+### If spinning up a new VM instance
+
+# Script is short enough to include in the gcloud command
+gcloud compute instances create example-instance --tags http-server \
+	--metadata startup-script='#! /bin/bash
+	# Installs apache and a custom homepage
+	sudo su -
+	apt-get update
+	apt-get install -y apache2
+	cat <<EOF > /var/www/html/index.html
+	<html><body><h1>Hello World</h1>
+	<p>This page was created from a simple start up script!</p>
+	</body></html>
+	EOF'
+
+# Script located inside the VM
+gcloud compute instances create example-instance \
+    --metadata-from-file startup-script=examples/scripts/install.sh
+
+# Script located inside a GCS bucket
+gcloud compute instances create example-instance \
+	--scopes storage-ro \
+    --metadata startup-script-url=gs://bucket/startupscript.sh
+
+### If a VM instance already exists
+
+# Script located inside the VM
+gcloud compute instances add-metadata example-instance \
+    --metadata-from-file startup-script=path/to/file
+
+# Script located inside a GCS bucket
+gcloud compute instances add-metadata example-instance \
+    --metadata startup-script-url=gs://bucket/file
+
+### Rerun a startup script from inside a VM
+sudo google_metadata_script_runner --script-type startup --debug
 
 ------------------------------------------------------
 
