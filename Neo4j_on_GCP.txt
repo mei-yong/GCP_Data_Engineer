@@ -80,7 +80,7 @@ cd /opt/bitnami/neo4j/bin
 
 sudo su
 neo4j stop
-rm -r /bitnami/neo4j/data/databases/graph.db
+rm -rf /bitnami/neo4j/data/databases/graph.db
 
 rm /home/bitnami/stack/neo4j/import/nodes.csv
 rm /home/bitnami/stack/neo4j/import/rels1.csv
