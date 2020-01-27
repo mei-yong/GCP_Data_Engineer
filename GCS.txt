@@ -196,6 +196,50 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 
+--------------------------------------------------------------
+
+Signed URLs
+Enabling external users and resources to access GCS files
+
+https://cloud.google.com/storage/docs/access-control/signed-urls
+https://medium.com/@aejefferson/how-to-use-cloud-storage-to-securely-load-data-into-neo4j-d97b72b2ad8f
+
+
+# Create service account and return its "email" identifier
+service_account_email="$(gcloud iam service-accounts create "url-signer" \
+	--display-name "url-signer for items in storage buckets" \
+	--format="value(email)")"
+	  
+# View list of service accounts associated with the project
+gcloud iam service-accounts list
+service_account_email="url-signer@venti-sandbox-956450.iam.gserviceaccount.com"
+
+# Create a private key for that service account
+gcloud iam service-accounts keys create ./url-signer-key.json \
+	--iam-account="${service_account_email}"
+
+# Configure the service account we want to use with read permissions on the bucket 
+gsutil iam ch serviceAccount:${service_account_email}:objectViewer "gs://<bucket>"
+
+# Generate signed urls
+# -m for multithreading, -d for duration of validity, -m for method
+gsutil -m signurl -d 6h -m GET \
+        "<path>/url-signer-key.json" \
+        "gs://<bucket>/<filename.ext>"
+
+URL     HTTP Method     Expiration      Signed URL
+gs://meizilla/nodes.csv GET     2020-01-27 20:02:45     https://storage.googleapis.com/meizilla/nodes.csv?x-goog-signature=821852d6a531d8d5292624ac0245a...
+
+# Generated signed urls for all items in a bucket
+gsutil -m signurl -d 6h -m GET \
+        "<path>/url-signer-key.json" \
+        "gs://<bucket>/**"
+
+URL     HTTP Method     Expiration      Signed URL
+gs://meizilla/nodes.csv GET     2020-01-27 20:05:14     https://storage.googleapis.com/meizilla/nodes.csv?x-goog-signature=603b28d2281b8b7cf5db61a5c4fe7...
+gs://meizilla/rels1.csv GET     2020-01-27 20:05:14     https://storage.googleapis.com/meizilla/rels1.csv?x-goog-signature=2b582ccf269da57bb90a61ebb10ea...
+gs://meizilla/rels2.csv GET     2020-01-27 20:05:14     https://storage.googleapis.com/meizilla/rels2.csv?x-goog-signature=75901cf063be6369d3fb3177916428...
+
 
 
 
