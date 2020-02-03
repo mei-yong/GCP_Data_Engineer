@@ -310,7 +310,7 @@ sudo pip install py2neo pyopenssl
 sudo mkdir /home/python-run
 
 # Copy the Python file to be executed into the dedicated directory
-sudo gsutil cp gs://meizilla-test/test6.py /home/python-run
+sudo gsutil cp gs://bucket/test6.py /home/python-run
 
 # Copy the json url signer from GCS to the dedicated directory
 sudo gsutil cp gs://project-keys/project-key-123456789.json /home/python-run
@@ -329,6 +329,68 @@ sudo python /home/python-run/test6.py $TRANSURL
 sudo shutdown -h now
 
 
+-----------------------------
+test6.py
+-----------------------------
+import sys
+
+def create_skeleton(transactions=sys.argv[1]):
+
+    # Import Python libraries
+    from py2neo import Graph
+    
+    # Initialise the graph db
+    uri = "bolt://uri:7687"
+    user = "neo4j"
+    password = "KPMG4j@@"
+    graph = Graph(uri=uri, user=user, password=password)
+    
+    graph.run("CREATE CONSTRAINT ON (b:Business) ASSERT b.id IS UNIQUE")
+    
+    query = '''
+            USING PERIODIC COMMIT 500
+            LOAD CSV WITH HEADERS
+            FROM "{}" AS row
+            WITH row WHERE row.id_1 IS NOT NULL
+                AND row.type_id_1 = "Business"
+            MERGE (:Businesstest {{id:row.id_1}} )
+    '''.format(transactions)
+    
+    graph.run(query)
+    
+    query = '''
+            USING PERIODIC COMMIT 500
+            LOAD CSV WITH HEADERS
+            FROM "{}" AS row
+            WITH row WHERE row.id_2 IS NOT NULL
+                AND row.type_id_2 = "Business"
+            MERGE (:Businesstest {{id:row.id_2}} )
+    '''.format(transactions)
+    
+    graph.run(query)
+    
+    query = '''
+            USING PERIODIC COMMIT 500
+            LOAD CSV WITH HEADERS
+            FROM "{}" AS row
+            WITH row WHERE row.id_1 IS NOT NULL
+                AND row.id_2 IS NOT NULL
+                AND row.transaction_count IS NOT NULL
+            MATCH (a:Businesstest {{id:row.id_1}})
+            MATCH (b:Businesstest {{id:row.id_2}})
+            MERGE (a)-[r:PAID {{network_id: row.network_id,
+                                max_date: row.max_date,
+                                min_date: row.min_date,
+                                transaction_count: toInteger(row.transaction_count),
+                                total_value_of_transactions: toFloat(row.total_value_of_transactions)	
+                                }}
+                        ]->(b) 
+    '''.format(transactions)
+    
+    graph.run(query)
+
+if __name__ == "__main__":
+    create_skeleton()
 
 
 
