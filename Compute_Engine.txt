@@ -291,5 +291,44 @@ http-content-rule               35.190.15.116  TCP          http-lb-proxy
 nginx-lb           us-central1  35.193.83.138  TCP          us-central1/targetPools/nginx-pool
 
 
+------------------------------------------------------
+
+Using a VM to execute a Python file - including installing dependencies & signed GCS URLs
+
+# Update the OS apps
+sudo apt-get update && apt-get upgrade
+
+# Download and install pip
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python get-pip.py
+sudo pip install -U pip
+
+# Install Python packages
+sudo pip install py2neo pyopenssl
+
+# Make a directory for all of the subsequent operations
+sudo mkdir /home/python-run
+
+# Copy the Python file to be executed into the dedicated directory
+sudo gsutil cp gs://meizilla-test/test6.py /home/python-run
+
+# Copy the json url signer from GCS to the dedicated directory
+sudo gsutil cp gs://project-keys/project-key-123456789.json /home/python-run
+
+# Use the url signer json to generate a signed URL for each of the CSVs and assign the generated URLs to variables
+TRANSSIGN=$(gsutil -m signurl -d 8h -m GET "/home/python-run/project-key-123456789.json" "gs://bucket/filename.csv")
+TRANSURL=$(echo "$TRANSSIGN" | awk 'FNR == 2 {print $5}')
+
+# Delete the json url signer from the dedicated directory
+sudo rm venti-dev-498572-ee1ce9e17158.json
+
+# Run the Python executable file that reads from CSVs in the GCS bucket and builds the Neo4j graph db via the bolt connection
+sudo python /home/python-run/test6.py $TRANSURL
+
+# Shutdown the VM
+sudo shutdown -h now
+
+
+
 
 
