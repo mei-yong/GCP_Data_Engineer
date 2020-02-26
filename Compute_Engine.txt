@@ -72,6 +72,60 @@ gcloud compute instances add-metadata example-instance \
 ### Rerun a startup script from inside a VM
 sudo google_metadata_script_runner --script-type startup --debug
 
+
+#-----------------------------#
+# VM startup-script: template
+#-----------------------------#
+
+
+# Update the OS apps
+sudo apt-get update && apt-get upgrade
+
+# Download and install pip
+sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python get-pip.py
+sudo pip install -U pip
+
+# Make python 3 the default
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+sudo update-alternatives --config python
+sudo update-alternatives  --set python /usr/bin/python3.5
+
+# Install Python packages
+# google-cloud-storage - for working with GCS bucket
+# google-cloud-bigquery - for working with BigQuery
+# pyopenssl - for signed URLs
+# py2neo - for running Neo4j commits over bolt connection
+sudo pip install pandas google-cloud-storage
+
+# Make a directory for all of the subsequent operations
+sudo mkdir /home/python-run
+
+########## Optional: for creating signed URLs for GCS bucket objects ##########
+
+# Copy the json url signer from GCS to the dedicated directory
+sudo gsutil cp gs://<bucket_name>/<signer_key.json> /home/python-run
+
+# Use the url signer json to generate a signed URL and assign the generated URL to a variable
+GENSIGN=$(gsutil -m signurl -d 8h -m GET "<directory_of_signer_key.json>" "gs://<bucket_name>/<file_to_sign.csv>")
+SIGN=$(echo "$GENSIGN" | awk 'FNR == 2 {print $5}')
+
+# Delete the json url signer from the dedicated directory
+sudo rm /home/python-run/<signer_key.json>
+
+#################################################################################
+
+# Copy the Python file to be executed into the dedicated directory
+sudo gsutil cp gs://<bucket_name>/<python_file_name.py> /home/python-run
+
+# Run the Python executable file
+sudo python /home/python-run/<python_file_name.py> <optional_python_input1> <optional_python_input2>
+
+# Optional: Shutdown the VM
+#sudo shutdown -h now
+
+
+
 ------------------------------------------------------
 
 Example: Setup NGINX web server on a VM
