@@ -218,8 +218,82 @@ gcloud ai-platform predict \
 
 
 
+----------------------------------------------------------------------------
+
+# Template Python script for model serving
+
+########## Import libraries ##########
+import sys
+import pandas as pd
+from google.cloud import storage, bigquery
+from py2neo import Graph
 
 
+def model_scoring(filepath=sys.argv[1]):
+
+    ########## Import model input data from BigQuery ##########
+    
+    # Set up access to BQ
+    bq_client = bigquery.Client()
+    
+    # Get BQ data and put into a df
+    data = bq_client.query("SELECT * FROM `venti-dev-498572.final_output.final_financial_and_risk` LIMIT 1000").to_dataframe()
+    
+    
+    ########## Import model from bucket ##########
+    
+    # Set up access to the bucket, download the model and import it
+    model_name = "doubler.joblib"
+    
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket("venti-dev-498572-mlpipeline")
+    blob = bucket.blob("models/" + model_name)
+    blob.download_to_filename("/tmp/" + model_name)
+    #model = joblib.load("/tmp/" + model_name)
+    
+    
+    ########## Get model predictions & output to local directory then move to bucket ##########
+    
+    outputfile_name = "doubler_preds.csv"
+    
+    #preds = model.predict(data)
+    #preds.to_csv("/tmp/" + outputfile_name, index=False)
+    data.to_csv("/tmp/" + outputfile_name, index=False)
+    
+    
+    ########## Output model predictions to local directory then move it to bucket ##########
+    
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket("venti-dev-498572-mlpipeline")
+    blob = bucket.blob("preds/" + outputfile_name)
+    blob.upload_from_filename("/tmp/" + outputfile_name)
+    
+    
+    ########## Add the risk & potential data from bucket to Neo4j VM ##########
+    
+    # Initialise the graph db
+    uri = "bolt://localhost:7687"
+    user = "neo4j"
+    password = "KPMG4j@@"
+    graph = Graph(uri=uri, user=user, password=password)
+    
+    # Add the risk and potential scores to Neo4j
+    query = '''
+    USING PERIODIC COMMIT 5000
+    LOAD CSV WITH HEADERS
+    FROM "{}" AS row
+    WITH row WHERE row.id_1 IS NOT NULL
+    AND row.type_id_1 = "Business"
+    MATCH (n:Businesstest {{id:row.id_1}} )
+    SET n.risk = row.risk,
+        n.potential = row.potential
+    '''.format(")
+    
+    graph.run(query)
+
+
+if __name__ = "__main__":
+    model_scoring()
 
 
 
