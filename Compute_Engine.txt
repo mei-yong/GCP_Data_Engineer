@@ -73,59 +73,6 @@ gcloud compute instances add-metadata example-instance \
 sudo google_metadata_script_runner --script-type startup --debug
 
 
-#-----------------------------#
-# VM startup-script: template
-#-----------------------------#
-
-
-# Update the OS apps
-sudo apt-get update && apt-get upgrade
-
-# Download and install pip
-sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-sudo python get-pip.py
-sudo pip install -U pip
-
-# Make python 3 the default
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
-sudo update-alternatives --config python
-sudo update-alternatives  --set python /usr/bin/python3.5
-
-# Install Python packages
-# google-cloud-storage - for working with GCS bucket
-# google-cloud-bigquery - for working with BigQuery
-# pyopenssl - for signed URLs
-# py2neo - for running Neo4j commits over bolt connection
-sudo pip install pandas google-cloud-storage
-
-# Make a directory for all of the subsequent operations
-sudo mkdir /home/python-run
-
-########## Optional: for creating signed URLs for GCS bucket objects ##########
-
-# Copy the json url signer from GCS to the dedicated directory
-sudo gsutil cp gs://<bucket_name>/<signer_key.json> /home/python-run
-
-# Use the url signer json to generate a signed URL and assign the generated URL to a variable
-GENSIGN=$(gsutil -m signurl -d 8h -m GET "<directory_of_signer_key.json>" "gs://<bucket_name>/<file_to_sign.csv>")
-SIGN=$(echo "$GENSIGN" | awk 'FNR == 2 {print $5}')
-
-# Delete the json url signer from the dedicated directory
-sudo rm /home/python-run/<signer_key.json>
-
-#################################################################################
-
-# Copy the Python file to be executed into the dedicated directory
-sudo gsutil cp gs://<bucket_name>/<python_file_name.py> /home/python-run
-
-# Run the Python executable file
-sudo python /home/python-run/<python_file_name.py> <optional_python_input1> <optional_python_input2>
-
-# Optional: Shutdown the VM
-#sudo shutdown -h now
-
-
-
 ------------------------------------------------------
 
 Example: Setup NGINX web server on a VM
@@ -347,104 +294,201 @@ nginx-lb           us-central1  35.193.83.138  TCP          us-central1/targetPo
 
 ------------------------------------------------------
 
-Using a VM to execute a Python file - including installing dependencies & signed GCS URLs
+Using a VM to execute a Python file - including installing dependencies, setting up Python 3.5 & signed GCS URLs
 
 # Update the OS apps
 sudo apt-get update && apt-get upgrade
 
 # Download and install pip
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py
 sudo pip install -U pip
 
+# Make python 3 the default
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.5 2
+sudo update-alternatives --config python
+sudo update-alternatives  --set python /usr/bin/python3.5
+
 # Install Python packages
-sudo pip install py2neo pyopenssl
+# google-cloud-storage - for working with GCS bucket
+# google-cloud-bigquery - for working with BigQuery
+# pyopenssl - for signed URLs
+# py2neo - for running Neo4j commits over bolt connection
+sudo pip install pandas google-cloud-storage
 
 # Make a directory for all of the subsequent operations
 sudo mkdir /home/python-run
 
-# Copy the Python file to be executed into the dedicated directory
-sudo gsutil cp gs://bucket/test6.py /home/python-run
+########## Optional: for creating signed URLs for GCS bucket objects ##########
 
 # Copy the json url signer from GCS to the dedicated directory
-sudo gsutil cp gs://project-keys/project-key-123456789.json /home/python-run
+sudo gsutil cp gs://<bucket_name>/<signer_key.json> /home/python-run
 
-# Use the url signer json to generate a signed URL for each of the CSVs and assign the generated URLs to variables
-TRANSSIGN=$(gsutil -m signurl -d 8h -m GET "/home/python-run/project-key-123456789.json" "gs://bucket/filename.csv")
-TRANSURL=$(echo "$TRANSSIGN" | awk 'FNR == 2 {print $5}')
+# Use the url signer json to generate a signed URL and assign the generated URL to a variable
+GENSIGN=$(gsutil -m signurl -d 8h -m GET "<directory_of_signer_key.json>" "gs://<bucket_name>/<file_to_sign.csv>")
+SIGN=$(echo "$GENSIGN" | awk 'FNR == 2 {print $5}')
 
 # Delete the json url signer from the dedicated directory
-sudo rm venti-dev-498572-ee1ce9e17158.json
+sudo rm /home/python-run/<signer_key.json>
 
-# Run the Python executable file that reads from CSVs in the GCS bucket and builds the Neo4j graph db via the bolt connection
-sudo python /home/python-run/test6.py $TRANSURL
+#################################################################################
 
-# Shutdown the VM
-sudo shutdown -h now
+# Copy the Python file to be executed into the dedicated directory
+sudo gsutil cp gs://<bucket_name>/<python_file_name.py> /home/python-run
+
+# Run the Python executable file
+sudo python /home/python-run/<python_file_name.py> <optional_python_input1> <optional_python_input2>
+
+# Optional: Shutdown the VM
+#sudo shutdown -h now
 
 
------------------------------
-test6.py
------------------------------
+--------------------------
+ neo4j_build_skeleton.py
+--------------------------
+
 import sys
 
-def create_skeleton(transactions=sys.argv[1]):
+def create_skeleton(transactions=[sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4]]):
 
     # Import Python libraries
     from py2neo import Graph
     
     # Initialise the graph db
-    uri = "bolt://uri:7687"
+    uri = "bolt://URL:7687"
     user = "neo4j"
-    password = "KPMG4j@@"
+    password = "password"
     graph = Graph(uri=uri, user=user, password=password)
     
     graph.run("CREATE CONSTRAINT ON (b:Business) ASSERT b.id IS UNIQUE")
     
-    query = '''
-            USING PERIODIC COMMIT 500
+    for transactfile in transactions:
+        query = '''
+            USING PERIODIC COMMIT 5000
             LOAD CSV WITH HEADERS
             FROM "{}" AS row
             WITH row WHERE row.id_1 IS NOT NULL
-                AND row.type_id_1 = "Business"
+            AND row.type_id_1 = "Business"
             MERGE (:Businesstest {{id:row.id_1}} )
-    '''.format(transactions)
-    
-    graph.run(query)
-    
-    query = '''
-            USING PERIODIC COMMIT 500
+            '''.format(transactfile)
+		
+        graph.run(query)
+        
+        query = '''
+            USING PERIODIC COMMIT 5000
             LOAD CSV WITH HEADERS
             FROM "{}" AS row
             WITH row WHERE row.id_2 IS NOT NULL
-                AND row.type_id_2 = "Business"
+            AND row.type_id_2 = "Business"
             MERGE (:Businesstest {{id:row.id_2}} )
-    '''.format(transactions)
-    
-    graph.run(query)
-    
-    query = '''
-            USING PERIODIC COMMIT 500
+            '''.format(transactfile)
+		
+        graph.run(query)
+		
+        query = '''
+            USING PERIODIC COMMIT 5000
             LOAD CSV WITH HEADERS
             FROM "{}" AS row
             WITH row WHERE row.id_1 IS NOT NULL
-                AND row.id_2 IS NOT NULL
-                AND row.transaction_count IS NOT NULL
+            AND row.id_2 IS NOT NULL
+            AND row.type_id_1 = "Business"
+            AND row.type_id_2 = "Business"
+            AND row.n_transactions IS NOT NULL
             MATCH (a:Businesstest {{id:row.id_1}})
             MATCH (b:Businesstest {{id:row.id_2}})
-            MERGE (a)-[r:PAID {{network_id: row.network_id,
-                                max_date: row.max_date,
-                                min_date: row.min_date,
-                                transaction_count: toInteger(row.transaction_count),
-                                total_value_of_transactions: toFloat(row.total_value_of_transactions)	
-                                }}
-                        ]->(b) 
-    '''.format(transactions)
-    
-    graph.run(query)
+            MERGE (a)-[r:PAID {network_id: COALESCE(row.network_id, "Unknown"),
+                    					max_date: COALESCE(row.max_date, "Unknown"),
+                    					min_date: COALESCE(row.min_date, "Unknown"),
+                    					n_transactions: toInteger(row.n_transactions),
+                    					amount: COALESCE(toFloat(row.amount), 0)	
+                    					}
+                    				]->(b) 
+            '''.format(transactfile)
+        		
+        graph.run(query)
+
 
 if __name__ == "__main__":
     create_skeleton()
+	
+	
+
+--------------------------
+ neo4j_build_meat.py
+--------------------------
+
+import sys
+
+def add_meat(mldb=sys.argv[1], risk=sys.argv[2]):
+
+    # Import Python libraries
+    from py2neo import Graph
+    
+    # Initialise the graph db
+    uri = "bolt://URL:7687"
+    user = "neo4j"
+    password = "password"
+    graph = Graph(uri=uri, user=user, password=password)
+    
+    query = '''
+            USING PERIODIC COMMIT 5000
+            LOAD CSV WITH HEADERS
+            FROM "{}" AS row
+            WITH row WHERE row.business_id IS NOT NULL
+            MATCH (a:Businesstest {{id:row.business_id}} )
+            SET a.roa=COALESCE(row.roa, "Unknown"),
+                a.roa_risk=COALESCE(row.roa_risk, "Unknown"),
+                a.solvency_ratio=COALESCE(row.solvency_ratio, "Unknown"),
+                a.solvency_ratio_risk=COALESCE(row.solvency_ratio_risk, "Unknown"),
+                a.leverage_ratio=COALESCE(row.leverage_ratio, "Unknown"),
+                a.leverage_ratio_risk=COALESCE(row.leverage_ratio_risk, "Unknown"),
+                a.treasury_ratio=COALESCE(row.treasury_ratio, "Unknown"),
+                a.treasury_ratio_risk=COALESCE(row.treasury_ratio_risk, "Unknown"),
+                a.risk=COALESCE(row.risk, "Unknown")
+    '''.format(risk)
+    
+    graph.run(query)
+    
+	
+    #NOTE: there's one node with risk "Extremely high"
+    graph.run('''MATCH (n:Businesstest {risk:"Extremely high"}) SET n.risk = "Very High"''')
+   
+    
+if __name__ == "__main__":
+    add_meat()
+	
+----------------------------------------------
+ Example Neo4j queries done by the front-end
+----------------------------------------------
+
+export const getBusinessQuery = (inJSON) => {
+    // Adjust the where clause based on the parameters provided.
+    const whereClause = Object.entries(inJSON)
+        .map(r => `a.${r[0]} IN ${JSON.stringify(r[1])}`)
+        .join(' AND ') || '1==1'
+
+    const a = `MATCH (a:Business)-[p:PAID]-(b:Business) WHERE ${whereClause} WITH a LIMIT 15
+        CALL apoc.path.subgraphAll(a, {maxLevel:1}) YIELD nodes, relationships
+        RETURN nodes, relationships LIMIT 15;`
+    return a
+}
+
+export const getClientQuery = (inJSON, prospective) => {
+    const whereClause = ((json, customer) => Object.entries(json).map(r => `${customer ? 'c' : 'nc'}.${r[0]} IN ${JSON.stringify(r[1])}`).join(' AND ') || '1==1')
+    const a = `MATCH (c:Customer) WHERE ${whereClause(inJSON, true)} WITH c
+    MATCH (nc:NotCustomer)-[r:PAID]->(c) WHERE ${whereClause(inJSON, false)} return ${prospective ? 'nc' : 'c'}, r LIMIT 100`
+    return a
+}
+
+// eslint-disable-next-line no-unused-vars
+export const getSpecificNode = (nodeID, rType) => {
+    const a = `MATCH (a:Business) WHERE a.node_id='${nodeID}' WITH a LIMIT 15
+    CALL apoc.path.subgraphAll(a, {maxLevel:1}) YIELD nodes, relationships
+    RETURN nodes, relationships LIMIT 15;`
+    return a
+}
+
+export const getRegions = 'MATCH (n) WHERE EXISTS(n.county) RETURN DISTINCT n.county'
 
 
 
