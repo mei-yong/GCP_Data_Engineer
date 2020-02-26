@@ -62,6 +62,11 @@ gcloud compute ssh $VM_NAME --project $PROJECT_ID --zone=europe-west1-d -- -NL 7
 # SSH into the VM in GCP
 gcloud beta compute --project $PROJECT_ID ssh --zone "europe-west1-d" $VM_NAME --tunnel-through-iap
 
+# To open the Neo4j Browser in internet browser, navigate to the below URL & login
+localhost:7474
+user = neo4j
+password = password
+
 # Change password
 https://neo4j.com/docs/operations-manual/current/configuration/set-initial-password/
 cd /usr/bin
@@ -78,20 +83,27 @@ cd /opt/bitnami/neo4j/bin
 
 # Steps to make/remake the db - don't forget to upload latest node and rel CSVs to the bucket
 
-sudo su
-neo4j stop
-rm -rf /bitnami/neo4j/data/databases/graph.db
+# Remove the existing node and edges files in the Neo4j VM
+sudo rm /home/bitnami/stack/neo4j/import/nodes.csv
+sudo rm /home/bitnami/stack/neo4j/import/rels.csv
 
-rm /home/bitnami/stack/neo4j/import/nodes.csv
-rm /home/bitnami/stack/neo4j/import/rels1.csv
-rm /home/bitnami/stack/neo4j/import/rels2.csv
-gsutil cp gs://meizilla/nodes.csv /home/bitnami/stack/neo4j/import
-gsutil cp gs://meizilla/rels1.csv /home/bitnami/stack/neo4j/import
-gsutil cp gs://meizilla/rels2.csv /home/bitnami/stack/neo4j/import
+# Copy the latest node and edges files from GCS bucket
+sudo gsutil cp gs://venti-dev-498572-bqoutput/nodes.csv /home/bitnami/stack/neo4j/import
+sudo gsutil cp gs://venti-dev-498572-bqoutput/rels.csv /home/bitnami/stack/neo4j/import
 
-neo4j-admin import --mode=csv --nodes=/home/bitnami/stack/neo4j/import/nodes.csv --relationships="/home/bitnami/stack/neo4j/import/rels1.csv, /home/bitnami/stack/neo4j/import/rels2.csv" --id-type=STRING --ignore-missing-nodes=true 
+# Stop the Neo4j instance currently running
+sudo neo4j stop
 
-neo4j restart
+# Remove the existing Neo4j graph.db instance
+sudo rm -rf /bitnami/neo4j/data/databases/graph.db
+
+# Kick off the Neo4j import tool
+sudo neo4j-admin import --mode=csv --nodes=/home/bitnami/stack/neo4j/import/nodes.csv --relationships=/home/bitnami/stack/neo4j/import/rels.csv --id-type=STRING --ignore-missing-nodes=true
+#sudo neo4j-admin import --mode=csv --nodes=/home/bitnami/stack/neo4j/import/nodes.csv --relationships="/home/bitnami/stack/neo4j/import/rels1.csv, /home/bitnami/stack/neo4j/import/rels2.csv" --id-type=STRING --ignore-missing-nodes=true
+
+# Start the Neo4j instance back up to view and query the data
+sudo neo4j start
+
 
 
 ----------------------------------------------------------------------------
